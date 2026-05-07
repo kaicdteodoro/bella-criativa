@@ -1,0 +1,116 @@
+# Desenvolvimento local: PHP (Laravel), MySQL, Ollama e Vite.
+#
+# Variáveis: usa o arquivo `.env` do projeto; sobrescreve só o necessário para o Compose
+# (host `mysql`, porta exposta, etc.). Senha do root do MySQL = `${DB_PASSWORD:-root}`.
+#
+# Primeira vez:
+#   cp .env.example .env
+#   docker compose run --rm app composer install
+#   docker compose run --rm node npm ci
+#   docker compose run --rm app php artisan key:generate
+#   docker compose run --rm app php artisan migrate
+#   docker compose run --rm app php artisan storage:link
+#   docker compose up ollama ollama-init
+#   docker compose up
+#
+# Só PHP + MySQL (sem Vite): docker compose up mysql app
+#
+# Testes automatizados: docker compose -f docker-compose.testing.yml run --rm test
+#
+# URLs: app http://localhost:8000 | Vite http://localhost:5173 | Ollama http://localhost:11434
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-bela_criativa}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/local/php/Dockerfile
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      DB_DATABASE: ${DB_DATABASE:-bela_criativa}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-public}
+      RESPONSE_CACHE_ENABLED: 'false'
+      CATALOG_AI_CURATION_ENABLED: 'true'
+      CATALOG_AI_PROVIDER: ${CATALOG_AI_PROVIDER:-ollama}
+      CATALOG_AI_MODEL: ${CATALOG_AI_MODEL:-gemma3:4b}
+      OLLAMA_URL: http://ollama:11434
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    command: sh -lc "php artisan optimize:clear && php artisan serve --host=0.0.0.0 --port=8000"
+
+  node:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - '5173:5173'
+    env_file:
+      - .env
+    environment:
+      VITE_APP_NAME: '${VITE_APP_NAME:-Bella Criativa}'
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ['CMD', 'ollama', 'list']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      CATALOG_AI_MODEL: ${CATALOG_AI_MODEL:-gemma3:4b}
+    entrypoint:
+      - /bin/sh
+      - -lc
+      - |
+        ollama pull "$$CATALOG_AI_MODEL"
+    restart: 'no'
+
+volumes:
+  mysql_data:
+  ollama_data:

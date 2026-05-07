@@ -1,0 +1,4 @@
+post_title,codigo_sku,codigo_fornecedor,categoria,descricao_curta,descricao_tecnica,imagens_zip_url
+Kit Churrasco Prime,SKU-001,FORN-001,Kits Churrasco,"Descrição curta","<p>Descrição técnica</p>",https://example.com/kit.zip
+
+Caneta Metal,SKU-002,FORN-002,Canetas,"Outra curta","<p>Outra técnica</p>",https://example.com/caneta.zip

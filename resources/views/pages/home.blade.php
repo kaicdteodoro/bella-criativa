@@ -1,0 +1,133 @@
+@extends('layouts.app')
+
+@section('content')
+
+{{-- ─── HERO ──────────────────────────────────────────────────────────────── --}}
+<section class="border-b border-[var(--color-border)] pb-14 pt-12 lg:pt-20">
+    <p class="pb-eyebrow mb-8">Produtos personalizados desde 2014</p>
+    <h1 class="text-[3.75rem] leading-[0.95] tracking-tight lg:text-[6rem] xl:text-[7.5rem]">
+        {!! nl2br(e($page?->sections?->where('type','hero')->first()?->heading ?? "Cada detalhe,\ndo seu jeito.")) !!}
+    </h1>
+    <div class="mt-8 grid gap-6 border-t border-[var(--color-border)] pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <p class="max-w-lg text-lg leading-8 text-[var(--color-text-secondary)]">
+            {{ $page?->sections?->where('type','hero')->first()?->content['text']
+                ?? 'Brindes, kits e produtos personalizados para empresas que se importam com o acabamento. Sem quantidade mínima em vários produtos.' }}
+        </p>
+        <div class="flex flex-wrap gap-4">
+            <a href="{{ route('products.index') }}" class="pb-btn-primary pb-focus-ring inline-flex px-7 py-4 text-sm uppercase tracking-[0.18em]">
+                Ver catálogo
+            </a>
+            <a href="{{ route('about') }}" class="pb-focus-ring inline-flex items-center gap-2 border border-[var(--color-border)] px-7 py-4 text-sm uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]">
+                Conhecer a Bella
+            </a>
+        </div>
+    </div>
+</section>
+
+{{-- ─── STATS ──────────────────────────────────────────────────────────────── --}}
+<section class="grid grid-cols-2 gap-px bg-[var(--color-border)] border border-[var(--color-border)] my-12 lg:grid-cols-4">
+    @foreach ([
+        ['10+',      'anos no mercado'],
+        ['Nacional', 'atendimento remoto'],
+        ['5',        'técnicas de personalização'],
+        ['Sem mín.', 'em vários produtos'],
+    ] as [$num, $label])
+    <div class="bg-[var(--color-bg)] px-8 py-8">
+        <p class="text-3xl font-semibold text-[var(--color-accent)]">{{ $num }}</p>
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{{ $label }}</p>
+    </div>
+    @endforeach
+</section>
+
+{{-- ─── CATEGORIAS ─────────────────────────────────────────────────────────── --}}
+@if($sectionCategories->isNotEmpty())
+<section class="py-4 border-t border-[var(--color-border)]">
+    <div class="mb-8 flex items-end justify-between">
+        <div>
+            <p class="pb-eyebrow mb-2">Catálogo</p>
+            <h2 class="text-3xl leading-tight">O que você pode personalizar</h2>
+        </div>
+        <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
+            Ver tudo →
+        </a>
+    </div>
+
+    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] lg:grid-cols-3">
+        @foreach($sectionCategories->take(3) as $cat)
+        <a href="{{ route('categories.show', $cat->slug) }}" class="group bg-[var(--color-bg)] flex min-h-60 flex-col justify-end p-8 transition hover:bg-[var(--color-accent)]">
+            <p class="text-xs uppercase tracking-[0.22em] text-[var(--color-text-secondary)] group-hover:text-white/60 transition-colors">Categoria</p>
+            <h3 class="mt-3 text-2xl group-hover:text-white transition-colors">{{ $cat->name }}</h3>
+            @if($cat->description)
+                <p class="mt-2 text-sm leading-6 text-[var(--color-text-secondary)] group-hover:text-white/70 transition-colors line-clamp-2">{{ $cat->description }}</p>
+            @endif
+        </a>
+        @endforeach
+    </div>
+</section>
+@endif
+
+{{-- ─── TÉCNICAS ───────────────────────────────────────────────────────────── --}}
+<section class="py-12 border-t border-[var(--color-border)]">
+    <div class="mb-8">
+        <p class="pb-eyebrow mb-2">Processo</p>
+        <h2 class="text-3xl leading-tight">Como personalizamos</h2>
+    </div>
+    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-3 lg:grid-cols-5">
+        @foreach ([
+            ['Laser',      'Metal, madeira e inox'],
+            ['DTF',        'Tecido e poliéster'],
+            ['Silk',       'Superfícies rígidas'],
+            ['Transfer',   'Múltiplos substratos'],
+            ['Sublimação', 'Cerâmica e poliéster'],
+        ] as [$nome, $desc])
+        <div class="bg-[var(--color-bg)] p-6 group hover:bg-[var(--color-accent)] transition-colors duration-200">
+            <p class="text-lg font-semibold group-hover:text-white transition-colors">{{ $nome }}</p>
+            <p class="mt-1 text-sm text-[var(--color-text-secondary)] group-hover:text-white/70 transition-colors">{{ $desc }}</p>
+        </div>
+        @endforeach
+    </div>
+</section>
+
+{{-- ─── DESTAQUES ──────────────────────────────────────────────────────────── --}}
+@if($featuredProducts->isNotEmpty())
+<section class="py-4 border-t border-[var(--color-border)]">
+    <div class="mb-8 flex items-end justify-between">
+        <div>
+            <p class="pb-eyebrow mb-2">Destaques</p>
+            <h2 class="text-3xl leading-tight">Seleção do catálogo</h2>
+        </div>
+        <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
+            Ver tudo →
+        </a>
+    </div>
+    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-4">
+        @foreach($featuredProducts->take(4) as $product)
+        <div class="bg-[var(--color-bg)]">
+            <x-product-card :product="$product" />
+        </div>
+        @endforeach
+    </div>
+</section>
+@endif
+
+{{-- ─── CTA ────────────────────────────────────────────────────────────────── --}}
+<section class="pb-full-bleed bg-[var(--color-accent)] mt-12 px-8 py-16 lg:px-16 lg:py-20">
+    <div class="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div class="space-y-3">
+            <p class="text-xs uppercase tracking-[0.24em] text-white/60">Vamos começar</p>
+            <h2 class="max-w-lg text-3xl leading-tight text-white lg:text-4xl">Tem um projeto em mente?<br>Manda uma mensagem.</h2>
+            <p class="max-w-md text-white/70 leading-7">Sem formulário complicado. Direto com quem vai executar.</p>
+        </div>
+        <a
+            href="https://wa.me/5516994492382"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pb-focus-ring inline-flex shrink-0 items-center gap-3 border border-white/30 bg-white px-7 py-4 text-sm uppercase tracking-[0.2em] text-[var(--color-accent)] transition hover:bg-white/90"
+        >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Falar no WhatsApp
+        </a>
+    </div>
+</section>
+
+@endsection

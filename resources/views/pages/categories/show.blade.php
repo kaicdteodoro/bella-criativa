@@ -1,6 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $collectionLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $category->filterDisplayName().' | Bella Criativa',
+        'description' => $description ?? null,
+        'url' => route('categories.show', $category->slug),
+    ];
+
+    $itemListLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ItemList',
+        'name' => 'Produtos da categoria '.$category->filterDisplayName(),
+        'itemListElement' => $productsForSeo
+            ->values()
+            ->map(fn ($product, $index) => [
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'url' => route('products.show', $product->slug),
+                'name' => $product->title,
+            ])
+            ->all(),
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($collectionLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@if (!empty($itemListLd['itemListElement']))
+    <script type="application/ld+json">{!! json_encode($itemListLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endif
 
 {{-- ─── HERO ──────────────────────────────────────────────────────────────── --}}
 <section class="border-b border-[var(--color-border)] pb-10 pt-10 lg:pt-16">

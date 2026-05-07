@@ -2,15 +2,17 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use App\Services\Import\ImportAction;
+use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_that_true_is_true(): void
+    public function test_import_action_values_are_stable(): void
     {
-        $this->assertTrue(true);
+        $this->assertSame('created', ImportAction::Created->value);
+        $this->assertSame('updated', ImportAction::Updated->value);
+        $this->assertSame('skipped', ImportAction::Skipped->value);
+        $this->assertSame('failed', ImportAction::Failed->value);
+        $this->assertSame('dry_run', ImportAction::DryRun->value);
     }
 }

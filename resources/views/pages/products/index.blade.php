@@ -1,6 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $catalogCollectionLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $title ?? 'Catálogo Bella Criativa',
+        'description' => $description ?? null,
+        'url' => url()->current().(request()->query() ? '?'.http_build_query(request()->query()) : ''),
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            'name' => 'Bella Criativa',
+            'url' => route('home'),
+        ],
+        'potentialAction' => [
+            '@type' => 'SearchAction',
+            'target' => route('products.index').'?busca={search_term_string}',
+            'query-input' => 'required name=search_term_string',
+        ],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($catalogCollectionLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 <div x-data="catalogNav()">
 
     {{-- ─── HERO ──────────────────────────────────────────────────────────── --}}
@@ -78,20 +98,4 @@
 
 </div>
 
-<script>
-    (() => {
-        try {
-            const shouldRestore = sessionStorage.getItem('catalog:restore-once') === '1';
-            if (!shouldRestore) return;
-            sessionStorage.removeItem('catalog:restore-once');
-            const raw = sessionStorage.getItem('catalog:return-state');
-            if (!raw) return;
-            const state = JSON.parse(raw);
-            if (!state || typeof state.url !== 'string' || typeof state.y !== 'number') return;
-            const current = window.location.pathname + window.location.search;
-            if (state.url !== current) return;
-            window.requestAnimationFrame(() => window.scrollTo({ top: state.y, behavior: 'auto' }));
-        } catch (e) {}
-    })();
-</script>
 @endsection

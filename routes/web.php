@@ -6,7 +6,10 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SitemapController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 
 Route::get('/', [CatalogController::class, 'home'])->name('home');
 Route::get('/sobre', [PageController::class, 'about'])->name('about');
@@ -17,3 +20,26 @@ Route::get('/produtos', [ProductController::class, 'index'])->name('products.ind
 Route::get('/produtos/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/categorias/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+Route::post('/csp-report', function (Request $request) {
+    $payload = $request->input('csp-report', $request->all());
+
+    if (! is_array($payload) || $payload === []) {
+        return response()->json(['ok' => true]);
+    }
+
+    Log::warning('csp_report_only_violation', [
+        'document_uri' => $payload['document-uri'] ?? null,
+        'violated_directive' => $payload['violated-directive'] ?? null,
+        'effective_directive' => $payload['effective-directive'] ?? null,
+        'blocked_uri' => $payload['blocked-uri'] ?? null,
+        'source_file' => $payload['source-file'] ?? null,
+        'line_number' => $payload['line-number'] ?? null,
+        'script_sample' => $payload['script-sample'] ?? null,
+    ]);
+
+    return response()->json(['ok' => true]);
+})
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->middleware('throttle:120,1')
+    ->name('security.csp-report');

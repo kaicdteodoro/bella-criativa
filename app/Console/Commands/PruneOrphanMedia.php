@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Product;
+use App\Models\ProductMedia;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class PruneOrphanMedia extends Command
@@ -20,14 +23,15 @@ class PruneOrphanMedia extends Command
             return self::SUCCESS;
         }
 
-        // SKUs referenciados em products (featured_image e product_media)
-        $usedPaths = collect(\DB::select("
-            SELECT DISTINCT REGEXP_REPLACE(featured_image, '/[^/]+$', '') AS path
-            FROM products WHERE featured_image IS NOT NULL
-            UNION
-            SELECT DISTINCT REGEXP_REPLACE(file, '/[^/]+$', '') AS path
-            FROM product_media
-        "))->pluck('path')->filter()->map(fn ($p) => trim($p, '/'))->unique();
+        $usedPaths = Product::query()
+            ->whereNotNull('featured_image')
+            ->pluck('featured_image')
+            ->merge(ProductMedia::query()->pluck('file'))
+            ->filter()
+            ->map(fn (string $path) => trim(Str::beforeLast($path, '/'), '/'))
+            ->filter()
+            ->unique()
+            ->values();
 
         $orphans = $allDirs->filter(fn ($dir) => ! $usedPaths->contains($dir));
 

@@ -4,7 +4,7 @@
 @php
     $galleryItems = $product->media
         ->map(fn ($media) => [
-            'url'       => \Illuminate\Support\Facades\Storage::url($media->file),
+            'url'       => \Illuminate\Support\Facades\Storage::disk('public')->url($media->file),
             'thumb'     => $media->thumb_url,
             'label'     => $product->title,
             'color_hex' => is_string($media->color_hex) ? strtoupper($media->color_hex) : null,
@@ -18,7 +18,50 @@
         ->all();
 
     $productCategories = $product->categories->map(fn ($c) => $c->filterDisplayName())->unique();
+    $primaryCategory = $product->categories->first();
+    $productLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $product->title,
+        'sku' => $product->sku,
+        'description' => $product->short_description ? strip_tags($product->short_description) : null,
+        'image' => collect([$product->og_image_url, $product->featured_image_url, $galleryItems->first()['url'] ?? null])
+            ->filter()
+            ->values()
+            ->all(),
+        'brand' => [
+            '@type' => 'Brand',
+            'name' => 'Bella Criativa',
+        ],
+        'url' => route('products.show', $product->slug),
+    ];
+    $breadcrumbLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => array_values(array_filter([
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Catálogo',
+                'item' => route('products.index'),
+            ],
+            $primaryCategory ? [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $primaryCategory->filterDisplayName(),
+                'item' => route('categories.show', $primaryCategory->slug),
+            ] : null,
+            [
+                '@type' => 'ListItem',
+                'position' => $primaryCategory ? 3 : 2,
+                'name' => $product->title,
+                'item' => route('products.show', $product->slug),
+            ],
+        ])),
+    ];
 @endphp
+<script type="application/ld+json">{!! json_encode($productLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
 {{-- ─── BREADCRUMB ─────────────────────────────────────────────────────────── --}}
 <div class="border-b border-[var(--color-border)] py-4">
@@ -26,7 +69,7 @@
         <a
             id="catalog-back-link"
             href="{{ route('products.index') }}"
-            onclick="try{sessionStorage.setItem('catalog:restore-once', '1');}catch(e){}"
+            data-catalog-restore-once="1"
             class="pb-focus-ring transition hover:text-[var(--color-text-primary)]"
         >
             Catálogo
@@ -121,20 +164,21 @@
         }
     }"
     @keydown.escape.window="closeLightbox()"
-    class="mt-10 grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] lg:grid-cols-[1fr_1fr]"
+    class="mt-10 grid gap-8 lg:grid-cols-[1fr_1fr]"
 >
 
     {{-- ─── COLUNA IMAGEM ──────────────────────────────────────────────────── --}}
-    <div class="bg-[var(--color-bg-soft)]">
+    <div class="bg-white">
 
         {{-- Imagem principal --}}
-        <div class="aspect-[4/5] overflow-hidden">
+        <div class="aspect-[4/5] overflow-hidden bg-white">
             @if ($initialImage)
                 <button type="button" x-on:click="openLightbox()" class="group h-full w-full">
                     <img
+                        src="{{ $initialImage }}"
                         x-bind:src="selectedImage"
                         alt="{{ $product->title }}"
-                        class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                        class="h-full w-full object-contain p-6 transition duration-300 group-hover:scale-[1.01]"
                         loading="eager"
                     >
                 </button>
@@ -147,19 +191,19 @@
 
         {{-- Thumbnails --}}
         @if ($galleryItems->count() > 1)
-            <div class="flex gap-px border-t border-[var(--color-border)] bg-[var(--color-border)]">
+            <div class="mt-3 grid grid-cols-6 gap-2">
                 @foreach ($galleryItems->take(6) as $item)
                     <button
                         type="button"
                         x-on:click="selectedImage = @js($item['url'])"
                         x-bind:class="selectedImage === @js($item['url']) ? 'ring-2 ring-inset ring-[var(--color-accent)]' : ''"
-                        class="relative flex-1 overflow-hidden bg-[var(--color-bg-soft)] pb-focus-ring transition"
+                        class="relative overflow-hidden bg-[var(--color-bg-soft)] pb-focus-ring transition"
                     >
                         <div class="aspect-square">
                             <img
                                 src="{{ $item['thumb'] ?? $item['url'] }}"
                                 alt="{{ $item['label'] }}"
-                                class="h-full w-full object-cover"
+                                class="h-full w-full object-contain p-1"
                                 loading="lazy"
                             >
                         </div>
@@ -174,7 +218,7 @@
     <div class="flex flex-col bg-[var(--color-bg)]">
 
         {{-- Categoria + título + SKU --}}
-        <div class="border-b border-[var(--color-border)] p-8 space-y-3 lg:p-10">
+        <div class="p-8 space-y-3 lg:p-10">
             <p class="pb-eyebrow">{{ $productCategories->join(' · ') }}</p>
             <h1 class="text-4xl leading-[1.05] lg:text-5xl">{{ $product->title }}</h1>
             <p class="text-xs uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">SKU {{ $product->sku }}</p>
@@ -182,14 +226,14 @@
 
         {{-- Descrição curta --}}
         @if ($product->short_description)
-            <div class="border-b border-[var(--color-border)] p-8 lg:p-10">
+            <div class="p-8 pt-0 lg:p-10 lg:pt-0">
                 <p class="text-lg leading-8 text-[var(--color-text-secondary)]">{{ $product->short_description }}</p>
             </div>
         @endif
 
         {{-- Cores --}}
         @if (!empty($product->available_colors))
-            <div class="border-b border-[var(--color-border)] p-8 space-y-4 lg:p-10">
+            <div class="p-8 pt-0 space-y-4 lg:p-10 lg:pt-0">
                 <p class="text-xs uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">Cores disponíveis</p>
                 <div class="flex flex-wrap gap-3">
                     @foreach ($product->available_colors as $color)
@@ -216,7 +260,7 @@
         @endif
 
         {{-- Descrição técnica --}}
-        <div class="border-b border-[var(--color-border)] p-8 lg:p-10">
+        <div class="p-8 pt-0 lg:p-10 lg:pt-0">
             <div class="prose max-w-none text-sm prose-p:text-[var(--color-text-secondary)] prose-p:leading-7 prose-headings:text-[var(--color-text-primary)]">
                 {!! $product->technical_description ?? '<p>Detalhes técnicos e variações disponíveis sob consulta.</p>' !!}
             </div>
@@ -334,18 +378,5 @@
         </a>
     </div>
 </section>
-
-<script>
-    (() => {
-        try {
-            const raw = sessionStorage.getItem('catalog:return-state');
-            if (!raw) return;
-            const state = JSON.parse(raw);
-            if (!state || typeof state.url !== 'string') return;
-            const link = document.getElementById('catalog-back-link');
-            if (link) link.setAttribute('href', state.url);
-        } catch (e) {}
-    })();
-</script>
 
 @endsection

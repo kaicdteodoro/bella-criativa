@@ -64,11 +64,11 @@ class Product extends Model
 
     public function getFeaturedImageUrlAttribute(): ?string
     {
-        return $this->featured_image ? Storage::url($this->featured_image) : null;
+        return $this->featured_image ? Storage::disk('public')->url($this->featured_image) : null;
     }
 
     public function getOgImageUrlAttribute(): ?string
     {
-        return $this->og_image ? Storage::url($this->og_image) : null;
+        return $this->og_image ? Storage::disk('public')->url($this->og_image) : null;
     }
 }

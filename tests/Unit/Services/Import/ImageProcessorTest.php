@@ -27,8 +27,8 @@ class ImageProcessorTest extends TestCase
         $processor = new ImageProcessor();
         $media = $processor->process('SKU-001', $zipPath, 80);
 
-        $this->assertSame('media/sku-001/sku-001-01.webp', $media->featured);
-        $this->assertSame('media/sku-001/sku-001-og.webp', $media->ogImage);
+        $this->assertSame('media/SKU-001/SKU-001-01.webp', $media->featured);
+        $this->assertSame('media/SKU-001/SKU-001-og.webp', $media->ogImage);
         $this->assertCount(2, $media->gallery);
         $this->assertContains('#000000', $media->availableColors);
         $this->assertContains('#0057FF', $media->availableColors);

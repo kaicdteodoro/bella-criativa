@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Services\Import\AiCuratedProductContent;
 use App\Services\Import\GalleryImage;
 use App\Services\Import\ImageProcessor;
 use App\Services\Import\ImportAction;
@@ -75,7 +76,13 @@ class ImportCatalogCommandTest extends TestCase
             {
             }
 
-            public function upsert(ProductRow $row, MediaData $media, array $termMap, ?string $source = null): ImportResult
+            public function upsert(
+                ProductRow $row,
+                MediaData $media,
+                array $termMap,
+                ?string $source = null,
+                ?AiCuratedProductContent $aiContent = null,
+            ): ImportResult
             {
                 $this->state->upsertCalled = true;
 

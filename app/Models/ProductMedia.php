@@ -24,13 +24,13 @@ class ProductMedia extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->file);
+        return Storage::disk('public')->url($this->file);
     }
 
     public function getThumbUrlAttribute(): string
     {
         return $this->thumb_file
-            ? Storage::url($this->thumb_file)
-            : Storage::url($this->file);
+            ? Storage::disk('public')->url($this->thumb_file)
+            : Storage::disk('public')->url($this->file);
     }
 }

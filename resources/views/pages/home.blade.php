@@ -52,17 +52,154 @@
         </a>
     </div>
 
-    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] lg:grid-cols-3">
-        @foreach($sectionCategories->take(3) as $cat)
-        <a href="{{ route('categories.show', $cat->slug) }}" class="group bg-[var(--color-bg)] flex min-h-60 flex-col justify-end p-8 transition hover:bg-[var(--color-accent)]">
-            <p class="text-xs uppercase tracking-[0.22em] text-[var(--color-text-secondary)] group-hover:text-white/60 transition-colors">Categoria</p>
-            <h3 class="mt-3 text-2xl group-hover:text-white transition-colors">{{ $cat->name }}</h3>
-            @if($cat->description)
-                <p class="mt-2 text-sm leading-6 text-[var(--color-text-secondary)] group-hover:text-white/70 transition-colors line-clamp-2">{{ $cat->description }}</p>
+    @if($categorySlides->isNotEmpty())
+        <div
+            x-data="{
+                index: 0,
+                total: {{ $categorySlides->count() }},
+                timer: null,
+                dragging: false,
+                dragStartX: 0,
+                dragDeltaX: 0,
+                start() {
+                    if (this.total <= 1 || this.timer) return;
+                    this.timer = setInterval(() => {
+                        this.next();
+                    }, 4200);
+                },
+                stop() {
+                    if (!this.timer) return;
+                    clearInterval(this.timer);
+                    this.timer = null;
+                },
+                restart() {
+                    this.stop();
+                    this.start();
+                },
+                goTo(nextIndex) {
+                    this.index = nextIndex;
+                    this.restart();
+                },
+                next() {
+                    this.index = (this.index + 1) % this.total;
+                },
+                prev() {
+                    this.index = (this.index - 1 + this.total) % this.total;
+                },
+                pointerDown(event) {
+                    this.dragging = true;
+                    this.dragStartX = event.clientX ?? (event.touches?.[0]?.clientX ?? 0);
+                    this.dragDeltaX = 0;
+                    this.stop();
+                },
+                pointerMove(event) {
+                    if (!this.dragging) return;
+                    const point = event.clientX ?? (event.touches?.[0]?.clientX ?? this.dragStartX);
+                    this.dragDeltaX = point - this.dragStartX;
+                },
+                pointerUp() {
+                    if (!this.dragging) return;
+                    if (this.dragDeltaX <= -48) this.next();
+                    if (this.dragDeltaX >= 48) this.prev();
+                    this.dragging = false;
+                    this.dragDeltaX = 0;
+                    this.start();
+                },
+            }"
+            x-init="start()"
+            x-on:mouseenter="stop()"
+            x-on:mouseleave="start()"
+            x-on:touchstart.passive="pointerDown($event)"
+            x-on:touchmove.passive="pointerMove($event)"
+            x-on:touchend="pointerUp()"
+            x-on:mousedown="pointerDown($event)"
+            x-on:mousemove="pointerMove($event)"
+            x-on:mouseup="pointerUp()"
+            x-on:mouseleave="pointerUp()"
+            class="select-none"
+        >
+            <div class="mb-4 flex items-center justify-end gap-2">
+                <button
+                    type="button"
+                    x-on:click="prev(); restart();"
+                    class="pb-focus-ring inline-flex h-10 w-10 items-center justify-center border border-[var(--color-border)] bg-white text-lg text-[var(--color-text-primary)] transition hover:border-[var(--color-text-primary)]"
+                    aria-label="Slide anterior"
+                >&#8249;</button>
+                <button
+                    type="button"
+                    x-on:click="next(); restart();"
+                    class="pb-focus-ring inline-flex h-10 w-10 items-center justify-center border border-[var(--color-border)] bg-white text-lg text-[var(--color-text-primary)] transition hover:border-[var(--color-text-primary)]"
+                    aria-label="Próximo slide"
+                >&#8250;</button>
+            </div>
+
+            <div class="overflow-hidden border border-[var(--color-border)] cursor-grab active:cursor-grabbing">
+                <div
+                    class="flex transition-transform duration-500 ease-out will-change-transform"
+                    x-bind:style="`transform: translateX(calc(-${index * 100}% + ${dragDeltaX}px));`"
+                >
+                    @foreach ($categorySlides as $slide)
+                        <div class="w-full shrink-0">
+                            <a
+                                href="{{ route('products.index', ['categoria' => $slide['slug']]) }}"
+                                class="pb-focus-ring group relative block min-h-[26rem] overflow-hidden bg-[var(--color-bg-soft)]"
+                            >
+                                @if (!empty($slide['image']))
+                                    <img
+                                        src="{{ $slide['image'] }}"
+                                        alt="{{ $slide['name'] }}"
+                                        loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                        fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                        decoding="async"
+                                        class="absolute right-0 top-0 h-full w-full object-contain p-3 transition duration-700 group-hover:scale-[1.03] md:w-[70%] md:p-6"
+                                    >
+                                @else
+                                    <div class="absolute inset-0 bg-[var(--color-bg-soft)]"></div>
+                                @endif
+
+                                <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent md:from-white/88 md:via-white/40 md:to-transparent"></div>
+                                <div class="absolute inset-0 bg-[radial-gradient(circle_at_78%_40%,rgba(255,255,255,0.3),transparent_50%)]"></div>
+
+                                <div class="absolute inset-x-0 bottom-0 top-0 flex items-end p-6 md:w-[44%] md:items-center md:p-10">
+                                    <div>
+                                    <p class="text-[10px] uppercase tracking-[0.24em] text-[var(--color-text-secondary)]">Categoria</p>
+                                    <h3 class="mt-2 text-3xl leading-tight text-[var(--color-text-primary)]">{{ $slide['name'] }}</h3>
+                                    @if(!empty($slide['description']))
+                                        <p class="mt-3 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)] line-clamp-2">
+                                            {{ $slide['description'] }}
+                                        </p>
+                                    @endif
+                                    <div class="mt-5 flex items-center justify-between gap-4">
+                                        <span class="text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                            Ver produtos da categoria →
+                                        </span>
+                                        <span class="text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                                            {{ $slide['products_count'] }} itens
+                                        </span>
+                                    </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            @if ($categorySlides->count() > 1)
+                <div class="mt-4 flex items-center justify-center gap-2">
+                    @foreach ($categorySlides as $i => $slide)
+                        <button
+                            type="button"
+                            x-on:click="goTo({{ $i }})"
+                            class="pb-focus-ring h-2.5 w-2.5 rounded-full border transition"
+                            x-bind:class="index === {{ $i }} ? 'border-[var(--color-accent)] bg-[var(--color-accent)]' : 'border-[var(--color-border)] bg-white'"
+                            aria-label="Ir para {{ $slide['name'] }}"
+                        ></button>
+                    @endforeach
+                </div>
             @endif
-        </a>
-        @endforeach
-    </div>
+        </div>
+    @endif
 </section>
 @endif
 
@@ -87,28 +224,6 @@
         @endforeach
     </div>
 </section>
-
-{{-- ─── DESTAQUES ──────────────────────────────────────────────────────────── --}}
-@if($featuredProducts->isNotEmpty())
-<section class="py-4 border-t border-[var(--color-border)]">
-    <div class="mb-8 flex items-end justify-between">
-        <div>
-            <p class="pb-eyebrow mb-2">Destaques</p>
-            <h2 class="text-3xl leading-tight">Seleção do catálogo</h2>
-        </div>
-        <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
-            Ver tudo →
-        </a>
-    </div>
-    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-4">
-        @foreach($featuredProducts->take(4) as $product)
-        <div class="bg-[var(--color-bg)]">
-            <x-product-card :product="$product" />
-        </div>
-        @endforeach
-    </div>
-</section>
-@endif
 
 {{-- ─── CTA ────────────────────────────────────────────────────────────────── --}}
 <section class="pb-full-bleed bg-[var(--color-accent)] mt-12 px-8 py-16 lg:px-16 lg:py-20">

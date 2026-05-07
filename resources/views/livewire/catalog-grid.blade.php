@@ -1,10 +1,10 @@
 <div>
     @forelse ($products as $product)
         @if ($loop->first)
-        <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         @endif
 
-        <div class="bg-[var(--color-bg)]">
+        <div>
             <x-product-card :product="$product" />
         </div>
 

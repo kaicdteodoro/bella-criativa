@@ -79,7 +79,7 @@ function buildEnvFile(array $values): string
 header('Content-Type: text/html; charset=utf-8');
 echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Bella Criativa Setup</title></head><body style='$style'>";
 echo "<h1>Bella Criativa — Setup</h1>";
-echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=repair' style='color:#0af'>→ Reparar APP_KEY</a></p>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=repair' style='color:#0af'>→ Reparar APP_KEY</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=probe' style='color:#0af'>→ Provar rota /</a></p>";
 
 $step = $_GET['step'] ?? 'setup';
 
@@ -107,6 +107,17 @@ if ($step === 'diag') {
     echo "DB_DATABASE: " . ($m[1] ?? '(vazio)') . "\n";
     echo "</pre>";
 
+    echo "<h3 style='color:#ff0'>Bootstrap Laravel</h3>";
+    run(
+        'config app.key / env APP_KEY',
+        $php . ' ' . $root . '/artisan tinker --execute=' . escapeshellarg(
+            "echo 'config(app.key)='.config('app.key').PHP_EOL;" .
+            "echo 'env(APP_KEY)='.env('APP_KEY').PHP_EOL;" .
+            "echo 'app.env='.app()->environment().PHP_EOL;"
+        ),
+        $pre
+    );
+
     // Fix cache
     echo "<h3 style='color:#ff0'>Limpar e re-cachear config</h3>";
     run('optimize:clear + optimize', "$php $root/artisan optimize:clear && $php $root/artisan optimize", $pre);
@@ -120,29 +131,54 @@ if ($step === 'diag') {
     $log = "$root/storage/logs/laravel.log";
     echo "<h3 style='color:#ff0'>Causa raiz do erro (últimas exceções)</h3><pre style='$pre'>";
     if (file_exists($log)) {
-        $content = file_get_contents($log);
-        // Pega os últimos 3 blocos de log (separados por newline+{)
-        $entries = preg_split('/\n(?=\{)/', $content);
-        $last    = array_slice($entries, -3);
-        foreach ($last as $entry) {
-            $decoded = json_decode($entry, true);
-            if ($decoded) {
-                echo "── " . ($decoded['datetime'] ?? '') . " ──\n";
-                echo "Nível:   " . ($decoded['level_name'] ?? '') . "\n";
-                echo "Mensagem: " . ($decoded['message'] ?? '') . "\n";
-                if (!empty($decoded['context']['exception'])) {
-                    echo "Exceção:  " . $decoded['context']['exception'] . "\n";
-                }
-            } else {
-                echo htmlspecialchars(substr($entry, 0, 500)) . "\n";
-            }
-            echo "\n";
-        }
+        echo 'Atualizado em: ' . date('Y-m-d H:i:s', filemtime($log)) . "\n\n";
+        $lines = file($log, FILE_IGNORE_NEW_LINES);
+        $lastLines = array_slice($lines ?: [], -80);
+        echo htmlspecialchars(implode("\n", $lastLines));
     } else {
         echo "Sem log ainda.";
     }
     echo "</pre>";
 
+    echo "</body></html>";
+    exit;
+}
+
+// ─── PROBE DA ROTA PRINCIPAL ────────────────────────────────
+if ($step === 'probe') {
+    echo "<h2>Probe da rota /</h2>";
+    echo "<pre style='$pre'>";
+
+    try {
+        require_once $root . '/vendor/autoload.php';
+
+        /** @var \Illuminate\Foundation\Application $app */
+        $app = require $root . '/bootstrap/app.php';
+
+        $kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
+        $request = \Illuminate\Http\Request::create('/', 'GET', [], [], [], [
+            'HTTP_HOST' => 'bellacria.com.br',
+            'HTTPS' => 'on',
+            'SERVER_PORT' => 443,
+            'REQUEST_URI' => '/',
+        ]);
+
+        $response = $kernel->handle($request);
+
+        echo 'HTTP status: ' . $response->getStatusCode() . "\n";
+        echo 'Content-Type: ' . ($response->headers->get('Content-Type') ?? '(sem content-type)') . "\n\n";
+        echo htmlspecialchars(substr($response->getContent(), 0, 4000));
+
+        $kernel->terminate($request, $response);
+    } catch (\Throwable $e) {
+        echo 'Excecao: ' . get_class($e) . "\n";
+        echo 'Mensagem: ' . $e->getMessage() . "\n";
+        echo 'Arquivo: ' . $e->getFile() . ':' . $e->getLine() . "\n\n";
+        echo htmlspecialchars($e->getTraceAsString());
+    }
+
+    echo "</pre>";
+    echo "<p><a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Voltar ao diagnóstico</a></p>";
     echo "</body></html>";
     exit;
 }

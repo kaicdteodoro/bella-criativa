@@ -47,6 +47,25 @@
         </article>
     </section>
 
+    <section class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-950 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-100">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <h3 class="text-base font-semibold">Corrigir descrições já importadas</h3>
+                <p class="mt-2 max-w-3xl">
+                    Remove em lote trechos operacionais do fornecedor que não devem aparecer para o cliente final, como pedido mínimo, revenda, atacado e múltiplos de caixa.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <x-filament::button size="sm" color="warning" wire:click="previewSanitizedImportedDescriptions">
+                    Ver prévia da correção
+                </x-filament::button>
+                <x-filament::button size="sm" color="danger" wire:click="applySanitizedImportedDescriptions">
+                    Aplicar correção nos importados
+                </x-filament::button>
+            </div>
+        </div>
+    </section>
+
     <div class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <div class="space-y-6">
             <form wire:submit="submitApiSync" class="space-y-6">

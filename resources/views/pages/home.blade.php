@@ -211,6 +211,28 @@
 </section>
 @endif
 
+@if($featuredProducts->isNotEmpty())
+<section class="py-12 border-t border-[var(--color-border)]">
+    <div class="mb-8 flex items-end justify-between gap-6">
+        <div>
+            <p class="pb-eyebrow mb-2">Seleção da Bella</p>
+            <h2 class="text-3xl leading-tight">Produtos em destaque para começar a explorar</h2>
+        </div>
+        <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
+            Ver catálogo completo →
+        </a>
+    </div>
+
+    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 xl:grid-cols-4">
+        @foreach ($featuredProducts as $product)
+            <div class="bg-[var(--color-bg)]">
+                <x-product-card :product="$product" />
+            </div>
+        @endforeach
+    </div>
+</section>
+@endif
+
 {{-- ─── TÉCNICAS ───────────────────────────────────────────────────────────── --}}
 <section class="py-12 border-t border-[var(--color-border)]">
     <div class="mb-8">

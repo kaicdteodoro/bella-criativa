@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\ImportRun;
 use App\Services\Import\ImportBatchResult;
 use App\Services\Import\ImportCatalogRunner;
+use App\Services\Import\SanitizeImportedProductContent;
 use App\Services\Import\SyncApiRunner;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -351,6 +352,38 @@ class ImportCatalog extends Page implements HasForms
             ->title('Execuções em andamento removidas')
             ->body("Registros removidos: {$count}.")
             ->color($count > 0 ? 'warning' : 'gray')
+            ->send();
+    }
+
+    public function previewSanitizedImportedDescriptions(SanitizeImportedProductContent $sanitizer): void
+    {
+        $result = $sanitizer->run([
+            'source' => 'xbz',
+            'dry_run' => true,
+        ]);
+
+        $sampleText = collect($result->samples)
+            ->map(fn (array $sample): string => $sample['sku'].' ('.implode(', ', $sample['changes']).')')
+            ->implode(' | ');
+
+        Notification::make()
+            ->title('Prévia da higienização concluída')
+            ->body("Lidos: {$result->scanned} | Ajustáveis: {$result->updated} | Sem mudança: {$result->unchanged}".($sampleText !== '' ? " | Amostras: {$sampleText}" : ''))
+            ->color($result->updated > 0 ? 'warning' : 'gray')
+            ->send();
+    }
+
+    public function applySanitizedImportedDescriptions(SanitizeImportedProductContent $sanitizer): void
+    {
+        $result = $sanitizer->run([
+            'source' => 'xbz',
+            'dry_run' => false,
+        ]);
+
+        Notification::make()
+            ->title('Descrições importadas higienizadas')
+            ->body("Lidos: {$result->scanned} | Atualizados: {$result->updated} | Sem mudança: {$result->unchanged}")
+            ->color($result->updated > 0 ? 'success' : 'gray')
             ->send();
     }
 

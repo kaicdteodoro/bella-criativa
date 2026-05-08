@@ -142,13 +142,13 @@ class ProductResource extends Resource
                 ->schema([
                     Toggle::make('is_featured')
                         ->label('Destaque na home')
-                        ->helperText('Aparece na seção "Seleção do catálogo" na página inicial.'),
+                        ->helperText('Aparece na seção curada da home quando o produto estiver publicado.'),
                     Toggle::make('is_launch')
                         ->label('Lançamento')
-                        ->helperText('Aparece na página de Lançamentos.'),
+                        ->helperText('Aparece na página de Lançamentos quando o produto estiver publicado.'),
                     Toggle::make('is_premium')
                         ->label('Linha Premium')
-                        ->helperText('Aparece na página Linha Premium.'),
+                        ->helperText('Aparece na página Linha Premium quando o produto estiver publicado.'),
                 ])
                 ->columns(3),
 

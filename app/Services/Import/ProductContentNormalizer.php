@@ -6,6 +6,16 @@ use Illuminate\Support\Str;
 
 class ProductContentNormalizer
 {
+    public function sanitizeImportedTitle(?string $value): ?string
+    {
+        return $this->normalizeTitle($value);
+    }
+
+    public function sanitizeCustomerFacingDescription(?string $value): ?string
+    {
+        return $this->normalizeDescription($value);
+    }
+
     public function normalize(
         ProductRow $row,
         MediaData $media,
@@ -63,6 +73,12 @@ class ProductContentNormalizer
     {
         $normalized = $this->normalizeText($value);
 
+        if ($normalized === null) {
+            return null;
+        }
+
+        $normalized = $this->stripSupplierCommercialNotes($normalized);
+
         return $normalized === null ? null : preg_replace("/\n{3,}/", "\n\n", $normalized);
     }
 
@@ -75,5 +91,39 @@ class ProductContentNormalizer
         $normalized = trim(preg_replace('/\s+/u', ' ', str_replace(["\r\n", "\r"], "\n", $value)) ?? '');
 
         return $normalized !== '' ? $normalized : null;
+    }
+
+    private function stripSupplierCommercialNotes(string $value): ?string
+    {
+        $patterns = [
+            '/\(?\bobs\.?:?.*$/iu',
+            '/\(?\bpedido\s*m[íi]nimo\b.*?(?:[.;]|$)/iu',
+            '/\(?\bpedidos?\s*m[íi]nimos?\b.*?(?:[.;]|$)/iu',
+            '/\(?\bquantidade\s*m[íi]nima\b.*?(?:[.;]|$)/iu',
+            '/\(?\bquantidades?\s*m[íi]nimas?\b.*?(?:[.;]|$)/iu',
+            '/\(?\bm[íi]nimo\s+de\s+\d+\s*(?:pe[çc]as?|un(?:id(?:ades?)?)?)\b.*?(?:[.;]|$)/iu',
+            '/\(?\bvenda\s+somente\s+para\s+revenda\b.*?(?:[.;]|$)/iu',
+            '/\(?\bexclusivo\s+para\s+revenda\b.*?(?:[.;]|$)/iu',
+            '/\(?\batacado\b.*?(?:[.;]|$)/iu',
+            '/\(?\brevenda\b.*?(?:[.;]|$)/iu',
+            '/\(?\bcaixa\s+fechada\b.*?(?:[.;]|$)/iu',
+            '/\(?\bpack\s+fechado\b.*?(?:[.;]|$)/iu',
+            '/\(?\bm[úu]ltiplos?\s+de\s+\d+\b.*?(?:[.;]|$)/iu',
+        ];
+
+        $cleaned = $value;
+
+        foreach ($patterns as $pattern) {
+            $cleaned = preg_replace($pattern, '', $cleaned) ?? $cleaned;
+        }
+
+        $cleaned = preg_replace('/\(\s*\)/u', '', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\s*([,;:.])\s*/u', '$1 ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/([,;:])\s*([,;:.])/u', '$2 ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/(?:\s*[|\/-]\s*){2,}/u', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\s{2,}/u', ' ', $cleaned) ?? $cleaned;
+        $cleaned = trim($cleaned, " \t\n\r\0\x0B,;:-|/");
+
+        return $cleaned !== '' ? $cleaned : null;
     }
 }

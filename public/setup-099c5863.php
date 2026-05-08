@@ -10,8 +10,15 @@ if (($_GET['token'] ?? '') !== '099c5863da2698db66adf41c') {
 while (@ob_end_flush()) {}
 
 $root = dirname(__DIR__);
-$php  = PHP_BINARY;
 $home = '/home2/pensandobem';
+
+// Resolve CLI binary — PHP_BINARY em contexto web aponta pro CGI
+$php = '/opt/cpanel/ea-php84/root/usr/bin/php';
+if (!file_exists($php)) {
+    foreach (['/usr/bin/php', '/usr/local/bin/php'] as $candidate) {
+        if (file_exists($candidate)) { $php = $candidate; break; }
+    }
+}
 
 putenv("HOME=$home");
 putenv("COMPOSER_HOME=$home/.composer");

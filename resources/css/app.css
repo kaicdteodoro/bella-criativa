@@ -15,6 +15,9 @@
   --color-surface-warm-end: #f3ece3;
   --color-overlay-strong: rgba(0, 0, 0, 0.82);
   --color-overlay-soft: rgba(0, 0, 0, 0.38);
+  --color-nav-glass: rgba(255, 250, 245, 0.78);
+  --color-nav-border: rgba(114, 96, 84, 0.14);
+  --color-nav-shadow: rgba(56, 33, 19, 0.08);
 }
 
 html {
@@ -58,6 +61,18 @@ body {
     var(--color-overlay-soft),
     transparent
   );
+}
+
+.pb-nav-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 252, 248, 0.9) 0%,
+    var(--color-nav-glass) 100%
+  );
+  border-color: var(--color-nav-border);
+  box-shadow: 0 14px 42px var(--color-nav-shadow);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
 .pb-catalog-panel {

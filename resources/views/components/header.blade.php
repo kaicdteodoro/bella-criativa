@@ -44,7 +44,7 @@
     class="relative sticky top-0 z-50"
 >
     {{-- Barra superior sempre acima do backdrop do menu mobile --}}
-    <div class="relative z-[60] border-b border-[var(--color-border)] bg-[var(--color-bg)]/95 backdrop-blur-sm">
+    <div class="pb-nav-glass relative z-[60] border-b">
         <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:gap-6 lg:py-5">
             <div class="flex min-w-0 flex-1 items-center gap-2 lg:flex-none lg:gap-4">
                 <button

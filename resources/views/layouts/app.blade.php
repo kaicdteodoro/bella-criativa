@@ -96,6 +96,33 @@
     <main id="main-content" class="mx-auto max-w-7xl px-6 pt-10">
         @yield('content')
     </main>
+
+    <button
+        type="button"
+        x-data="scrollTopControl()"
+        x-cloak
+        x-show="visible"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="translate-y-4 opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-220"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-3 opacity-0"
+        x-on:click="scrollToTop()"
+        class="pb-scroll-top pb-focus-ring"
+        aria-label="Voltar ao topo"
+    >
+        <span class="pb-scroll-top-badge" aria-hidden="true">
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none">
+                <path d="M10 15V5M10 5 5.75 9.25M10 5l4.25 4.25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <span class="pb-scroll-top-copy">
+            <span class="pb-scroll-top-label">Navegação</span>
+            <span class="pb-scroll-top-title">Voltar ao topo</span>
+        </span>
+    </button>
+
     @livewireScriptConfig
  </body>
 </html>

@@ -49,6 +49,109 @@ Alpine.data('catalogNav', () => {
 
 Alpine.store('search', { open: false });
 
+Alpine.data('scrollTopControl', () => {
+    let scrollHandler = null;
+
+    return {
+        visible: false,
+        isScrolling: false,
+
+        init() {
+            scrollHandler = () => {
+                const nextVisible = window.scrollY > 420;
+
+                if (nextVisible !== this.visible) {
+                    this.visible = nextVisible;
+                }
+            };
+
+            scrollHandler();
+            window.addEventListener('scroll', scrollHandler, { passive: true });
+        },
+
+        destroy() {
+            if (scrollHandler) {
+                window.removeEventListener('scroll', scrollHandler);
+            }
+        },
+
+        scrollToTop() {
+            if (this.isScrolling) return;
+
+            this.isScrolling = true;
+
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            window.scrollTo({
+                top: 0,
+                behavior: reduceMotion ? 'auto' : 'smooth',
+            });
+
+            window.setTimeout(() => {
+                this.isScrolling = false;
+            }, reduceMotion ? 0 : 700);
+        },
+    };
+});
+
+Alpine.data('statCounter', ({ target = 0, suffix = '', duration = 1200 } = {}) => {
+    let observer = null;
+
+    return {
+        current: 0,
+        hasAnimated: false,
+
+        init() {
+            observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (!entry?.isIntersecting || this.hasAnimated) {
+                        return;
+                    }
+
+                    this.hasAnimated = true;
+                    this.animate();
+                    observer?.disconnect();
+                },
+                { threshold: 0.45 }
+            );
+
+            observer.observe(this.$el);
+        },
+
+        destroy() {
+            observer?.disconnect();
+        },
+
+        animate() {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (reduceMotion) {
+                this.current = target;
+                return;
+            }
+
+            const startedAt = performance.now();
+
+            const tick = (now) => {
+                const progress = Math.min((now - startedAt) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+
+                this.current = Math.round(target * eased);
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(tick);
+                }
+            };
+
+            window.requestAnimationFrame(tick);
+        },
+
+        formatted() {
+            return `${this.current}${suffix}`;
+        },
+    };
+});
+
 function saveCatalogReturnState() {
     try {
         sessionStorage.setItem('catalog:return-state', JSON.stringify({

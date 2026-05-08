@@ -29,14 +29,22 @@
 {{-- ─── STATS ─────────────────────────────────────────────────────────────── --}}
 <section class="grid grid-cols-2 gap-px bg-[var(--color-border)] border border-[var(--color-border)] lg:grid-cols-4">
     @foreach ([
-        ['10+',       'anos no mercado'],
-        ['Brasil',    'atendimento em todo o país'],
-        ['5',         'técnicas de personalização'],
-        ['Sem mínimo', 'em linhas selecionadas'],
-    ] as [$num, $label])
+        ['value' => '10+', 'label' => 'anos no mercado', 'count' => 10, 'suffix' => '+'],
+        ['value' => 'Brasil', 'label' => 'atendimento em todo o país'],
+        ['value' => '5', 'label' => 'técnicas de personalização', 'count' => 5],
+        ['value' => 'Sem mínimo', 'label' => 'em linhas selecionadas'],
+    ] as $stat)
     <div class="bg-[var(--color-bg)] px-8 py-8 lg:py-10">
-        <p class="text-3xl font-semibold text-[var(--color-accent)] lg:text-4xl">{{ $num }}</p>
-        <p class="mt-2 text-sm leading-5 text-[var(--color-text-secondary)]">{{ $label }}</p>
+        @if (isset($stat['count']))
+            <p
+                x-data="statCounter({ target: {{ $stat['count'] }}, suffix: '{{ $stat['suffix'] ?? '' }}' })"
+                x-text="formatted()"
+                class="text-3xl font-semibold text-[var(--color-accent)] lg:text-4xl"
+            >{{ $stat['value'] }}</p>
+        @else
+            <p class="text-3xl font-semibold text-[var(--color-accent)] lg:text-4xl">{{ $stat['value'] }}</p>
+        @endif
+        <p class="mt-2 text-sm leading-5 text-[var(--color-text-secondary)]">{{ $stat['label'] }}</p>
     </div>
     @endforeach
 </section>

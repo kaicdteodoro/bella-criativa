@@ -1,4 +1,4 @@
-import Alpine from 'alpinejs';
+import { Livewire, Alpine } from '../../vendor/livewire/livewire/dist/livewire.esm';
 
 window.Alpine = Alpine;
 
@@ -113,4 +113,4 @@ document.addEventListener('click', (event) => {
 hydrateCatalogBackLink();
 restoreCatalogScrollIfNeeded();
 
-Alpine.start();
+Livewire.start();

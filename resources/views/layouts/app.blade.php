@@ -96,6 +96,6 @@
     <main id="main-content" class="mx-auto max-w-7xl px-6 pt-10">
         @yield('content')
     </main>
-    @livewireScripts
+    @livewireScriptConfig
  </body>
 </html>

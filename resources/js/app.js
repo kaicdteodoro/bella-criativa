@@ -47,6 +47,35 @@ Alpine.data('catalogNav', () => {
     };
 });
 
+Alpine.data('catalogFilters', ({ initialSearch = '', activeCategory = null } = {}) => ({
+    mobileFiltersOpen: false,
+    draftSearch: initialSearch,
+    draftCategory: activeCategory,
+
+    init() {
+        this.$watch('mobileFiltersOpen', (open) => {
+            document.body.classList.toggle('overflow-hidden', open);
+        });
+    },
+
+    openMobileFilters() {
+        this.mobileFiltersOpen = true;
+    },
+
+    closeMobileFilters() {
+        this.mobileFiltersOpen = false;
+    },
+
+    setDraftCategory(value) {
+        this.draftCategory = value || null;
+    },
+
+    clearDraftFilters() {
+        this.draftSearch = '';
+        this.draftCategory = null;
+    },
+}));
+
 Alpine.store('search', { open: false });
 
 Alpine.data('scrollTopControl', () => {

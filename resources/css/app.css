@@ -160,6 +160,33 @@ body {
   box-shadow: 0 20px 40px rgba(56, 33, 19, 0.2);
 }
 
+.pb-catalog-toolbar {
+  position: sticky;
+  top: 4.9rem;
+  z-index: 35;
+  margin-top: -1px;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 252, 248, 0.92);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.pb-chip-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pb-chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .pb-catalog-toolbar {
+    top: 5.5rem;
+  }
+}
+
 @media (max-width: 640px) {
   .pb-scroll-top {
     right: 1rem;

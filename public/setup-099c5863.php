@@ -12,32 +12,30 @@ while (@ob_end_flush()) {}
 $root = dirname(__DIR__);
 $home = '/home2/pensandobem';
 
-// Resolve CLI binary — PHP_BINARY em contexto web aponta pro CGI
-$php = '/opt/cpanel/ea-php84/root/usr/bin/php';
-if (!file_exists($php)) {
-    foreach (['/usr/bin/php', '/usr/local/bin/php'] as $candidate) {
-        if (file_exists($candidate)) { $php = $candidate; break; }
-    }
-}
-
 putenv("HOME=$home");
 putenv("COMPOSER_HOME=$home/.composer");
 
-function run(string $label, string $cmd): int
+$php = '/opt/cpanel/ea-php84/root/usr/bin/php';
+if (!file_exists($php)) {
+    foreach (['/usr/bin/php', '/usr/local/bin/php'] as $c) {
+        if (file_exists($c)) { $php = $c; break; }
+    }
+}
+
+$style = 'font-family:monospace;background:#1a1a1a;color:#eee;padding:20px';
+$pre   = 'background:#111;color:#0f0;padding:12px;white-space:pre-wrap;height:220px;overflow-y:auto';
+
+function run(string $label, string $cmd, string $pre): int
 {
     echo "<h3 style='color:#ff0'>▶ $label</h3>";
-    echo "<pre style='background:#111;color:#0f0;padding:12px;white-space:pre-wrap;height:220px;overflow-y:auto'>$ $cmd\n\n";
+    echo "<pre style='$pre'>$ $cmd\n\n";
     ob_flush(); flush();
-
     $handle = popen($cmd . ' 2>&1', 'r');
     while (!feof($handle)) {
         $line = fgets($handle, 4096);
-        if ($line !== false) {
-            echo htmlspecialchars($line);
-            ob_flush(); flush();
-        }
+        if ($line !== false) { echo htmlspecialchars($line); ob_flush(); flush(); }
     }
-    $code = pclose($handle);
+    $code  = pclose($handle);
     $color = $code === 0 ? '#0f0' : '#f44';
     echo "\n<b style='color:$color'>Exit: $code</b></pre>";
     ob_flush(); flush();
@@ -45,15 +43,92 @@ function run(string $label, string $cmd): int
 }
 
 header('Content-Type: text/html; charset=utf-8');
-echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bella Criativa Setup</title></head>';
-echo '<body style="font-family:monospace;background:#1a1a1a;color:#eee;padding:20px">';
-echo '<h1>Bella Criativa — Setup</h1>';
-ob_flush(); flush();
+echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Bella Criativa Setup</title></head><body style='$style'>";
+echo "<h1>Bella Criativa — Setup</h1>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a></p>";
 
-// 1. Composer
-run('1. Composer install', "cd $root && composer install --no-dev --optimize-autoloader");
+$step = $_GET['step'] ?? 'setup';
 
-// 2. .env
+// ─── DIAGNÓSTICO ─────────────────────────────────────────────
+if ($step === 'diag') {
+    echo "<h2>Diagnóstico</h2>";
+
+    // Storage writable?
+    $dirs = ['storage/logs', 'storage/framework/cache', 'storage/framework/sessions', 'storage/framework/views', 'bootstrap/cache'];
+    echo "<h3 style='color:#ff0'>Permissões de escrita</h3><pre style='$pre'>";
+    foreach ($dirs as $d) {
+        $path = "$root/$d";
+        $ok   = is_writable($path) ? '✓' : '✗ NAO GRAVAVEL';
+        echo "$d → $ok\n";
+    }
+    echo "</pre>";
+
+    // .env readable?
+    echo "<h3 style='color:#ff0'>.env</h3><pre style='$pre'>";
+    echo file_exists("$root/.env") ? "✓ existe\n" : "✗ NAO EXISTE\n";
+    $env = file_get_contents("$root/.env");
+    preg_match('/APP_KEY=(.+)/', $env, $m);
+    echo "APP_KEY: " . ($m[1] ?? '(vazio)') . "\n";
+    preg_match('/DB_DATABASE=(.+)/', $env, $m);
+    echo "DB_DATABASE: " . ($m[1] ?? '(vazio)') . "\n";
+    echo "</pre>";
+
+    // DB connection
+    echo "<h3 style='color:#ff0'>Conexão com banco</h3><pre style='$pre'>";
+    run('teste de conexão', "$php $root/artisan migrate:status 2>&1 | head -5", $pre);
+    echo "</pre>";
+
+    // Laravel log tail
+    $log = "$root/storage/logs/laravel.log";
+    echo "<h3 style='color:#ff0'>Últimas linhas do log</h3><pre style='$pre'>";
+    if (file_exists($log)) {
+        $lines = array_slice(file($log), -30);
+        echo htmlspecialchars(implode('', $lines));
+    } else {
+        echo "Sem log ainda.";
+    }
+    echo "</pre>";
+
+    echo "</body></html>";
+    exit;
+}
+
+// ─── CRIAR USUÁRIO ADMIN ─────────────────────────────────────
+if ($step === 'user') {
+    echo "<h2>Criar usuário admin</h2>";
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $name     = escapeshellarg($_POST['name'] ?? '');
+        $email    = escapeshellarg($_POST['email'] ?? '');
+        $password = escapeshellarg($_POST['password'] ?? '');
+
+        $code = <<<PHP
+\$u = App\Models\User::firstOrNew(['email' => $email]);
+\$u->name = $name;
+\$u->password = bcrypt($password);
+\$u->save();
+echo 'OK: ' . \$u->email;
+PHP;
+        $escaped = escapeshellarg($code);
+        run('Criar usuário', "$php $root/artisan tinker --execute=$escaped", $pre);
+    } else {
+        echo <<<HTML
+<form method="POST" style="max-width:400px">
+  <input type="hidden" name="token" value="099c5863da2698db66adf41c">
+  <p><label>Nome<br><input name="name" style="width:100%;padding:6px;background:#222;color:#eee;border:1px solid #555" value="Admin"></label></p>
+  <p><label>E-mail<br><input name="email" type="email" style="width:100%;padding:6px;background:#222;color:#eee;border:1px solid #555"></label></p>
+  <p><label>Senha<br><input name="password" type="password" style="width:100%;padding:6px;background:#222;color:#eee;border:1px solid #555"></label></p>
+  <p><button type="submit" style="background:#0a0;color:#fff;padding:10px 20px;border:none;cursor:pointer">Criar admin</button></p>
+</form>
+HTML;
+    }
+    echo "</body></html>";
+    exit;
+}
+
+// ─── SETUP PRINCIPAL ─────────────────────────────────────────
+run('1. Composer install', "cd $root && composer install --no-dev --optimize-autoloader", $pre);
+
 $env = <<<ENV
 APP_NAME="Bella Criativa"
 APP_ENV=production
@@ -117,25 +192,17 @@ MAIL_FROM_NAME="Bella Criativa"
 ENV;
 
 file_put_contents("$root/.env", $env);
-echo '<h3 style="color:#ff0">▶ 2. .env criado</h3><pre style="background:#111;color:#0f0;padding:12px">OK</pre>';
+echo "<h3 style='color:#ff0'>▶ 2. .env criado</h3><pre style='$pre'>OK</pre>";
 ob_flush(); flush();
 
-// 3. Key generate
-run('3. php artisan key:generate', "$php $root/artisan key:generate --force");
+run('3. php artisan key:generate', "$php $root/artisan key:generate --force", $pre);
+run('4. php artisan migrate',      "$php $root/artisan migrate --force", $pre);
+run('5. php artisan db:seed',      "$php $root/artisan db:seed --force", $pre);
+run('6. php artisan storage:link', "$php $root/artisan storage:link --force", $pre);
+run('7. php artisan optimize',     "$php $root/artisan optimize", $pre);
 
-// 4. Migrate
-run('4. php artisan migrate', "$php $root/artisan migrate --force");
-
-// 5. Seed
-run('5. php artisan db:seed', "$php $root/artisan db:seed --force");
-
-// 6. Storage link
-run('6. php artisan storage:link', "$php $root/artisan storage:link --force");
-
-// 7. Optimize
-run('7. php artisan optimize', "$php $root/artisan optimize");
-
-echo '<h2 style="color:#0f0">✓ Setup concluído!</h2>';
-echo '<p style="color:#f80"><b>IMPORTANTE:</b> Delete este arquivo imediatamente.</p>';
-echo '<p>Próximo passo: criar o usuário admin no Filament.</p>';
-echo '</body></html>';
+echo "<h2 style='color:#0f0'>✓ Setup concluído!</h2>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin agora</a></p>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico se der 500</a></p>";
+echo "<p style='color:#f80'><b>IMPORTANTE:</b> Delete este arquivo após criar o usuário admin.</p>";
+echo "</body></html>";

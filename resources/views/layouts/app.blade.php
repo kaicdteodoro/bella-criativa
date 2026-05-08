@@ -112,14 +112,10 @@
         class="pb-scroll-top pb-focus-ring"
         aria-label="Voltar ao topo"
     >
-        <span class="pb-scroll-top-badge" aria-hidden="true">
-            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none">
+        <span aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none">
                 <path d="M10 15V5M10 5 5.75 9.25M10 5l4.25 4.25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-        </span>
-        <span class="pb-scroll-top-copy">
-            <span class="pb-scroll-top-label">Navegação</span>
-            <span class="pb-scroll-top-title">Voltar ao topo</span>
         </span>
     </button>
 

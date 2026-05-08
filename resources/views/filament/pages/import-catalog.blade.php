@@ -1,4 +1,52 @@
 <x-filament-panels::page>
+    <section class="mb-6 grid gap-4 xl:grid-cols-3">
+        <article class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-100">
+            <h3 class="text-base font-semibold">Teste seguro</h3>
+            <p class="mt-2">Preenche um dry-run pequeno para validar credenciais e resposta da XBZ sem gravar produto.</p>
+            <div class="mt-4">
+                <x-filament::button size="sm" color="success" wire:click="fillSafeTest">
+                    Preencher teste 10 canetas
+                </x-filament::button>
+            </div>
+        </article>
+
+        <article class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+            <h3 class="text-base font-semibold">Carga inicial sugerida</h3>
+            <p class="mt-2">Preenche uma bateria com várias categorias. O limite será aplicado para cada categoria selecionada.</p>
+            <div class="mt-4">
+                <x-filament::button size="sm" color="warning" wire:click="fillStarterBatch">
+                    Preencher bateria inicial
+                </x-filament::button>
+            </div>
+        </article>
+
+        <article class="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-700 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+            <h3 class="text-base font-semibold text-gray-950 dark:text-white">Resumo do que vai rodar</h3>
+            <dl class="mt-3 space-y-2">
+                <div class="flex items-center justify-between gap-4">
+                    <dt>Fornecedor</dt>
+                    <dd class="font-medium">{{ $apiSyncData['source'] ?? 'xbz' }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt>Categorias selecionadas</dt>
+                    <dd class="font-medium">{{ count($this->selectedApiCategories()) }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt>Limite por categoria</dt>
+                    <dd class="font-medium">{{ (int) ($apiSyncData['limit'] ?? 0) }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt>Estimativa total</dt>
+                    <dd class="font-medium">{{ $this->estimatedApiItems() }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt>Modo</dt>
+                    <dd class="font-medium">{{ ($apiSyncData['dry_run'] ?? false) ? 'dry-run' : 'real' }}</dd>
+                </div>
+            </dl>
+        </article>
+    </section>
+
     <div class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <div class="space-y-6">
             <form wire:submit="submitApiSync" class="space-y-6">
@@ -7,6 +55,19 @@
                 <div class="rounded-xl border border-dashed border-gray-300 bg-white/70 p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
                     Sugestão para carga inicial: rode lotes de 50 por categoria com XBZ em dry-run primeiro, depois rode real.
                 </div>
+
+                @if ($this->selectedApiCategories() !== [])
+                    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5">
+                        <h4 class="text-sm font-semibold text-gray-950 dark:text-white">Categorias desta execução</h4>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @foreach ($this->selectedApiCategories() as $category)
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200">
+                                    {{ str($category)->replace('-', ' ')->title() }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <div class="flex items-center justify-end gap-3">
                     <x-filament::button type="submit" wire:loading.attr="disabled">

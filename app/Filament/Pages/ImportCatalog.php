@@ -288,6 +288,48 @@ class ImportCatalog extends Page implements HasForms
         return $this->getApiSyncPresetOptions();
     }
 
+    /**
+     * @return string[]
+     */
+    public function selectedApiCategories(): array
+    {
+        return $this->normalizeApiSyncCategoryKeys($this->apiSyncData['categoria'] ?? []);
+    }
+
+    public function estimatedApiItems(): int
+    {
+        $limit = max(0, (int) ($this->apiSyncData['limit'] ?? 0));
+        $categories = $this->selectedApiCategories();
+
+        if ($categories === []) {
+            return $limit;
+        }
+
+        return count($categories) * $limit;
+    }
+
+    public function fillSafeTest(): void
+    {
+        $this->apiSyncForm->fill([
+            'source' => (string) config('catalog.suppliers.default', 'xbz'),
+            'categoria' => ['canetas'],
+            'busca' => null,
+            'limit' => 10,
+            'dry_run' => true,
+        ]);
+    }
+
+    public function fillStarterBatch(): void
+    {
+        $this->apiSyncForm->fill([
+            'source' => (string) config('catalog.suppliers.default', 'xbz'),
+            'categoria' => ['canetas', 'cadernos', 'canecas', 'copos', 'garrafas', 'mochilas'],
+            'busca' => null,
+            'limit' => 50,
+            'dry_run' => true,
+        ]);
+    }
+
     private function notifyBatch(ImportBatchResult $batch, string $title): void
     {
         $totals = $batch->totals();

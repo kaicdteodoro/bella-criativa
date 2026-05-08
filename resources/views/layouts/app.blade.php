@@ -77,9 +77,19 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/foto-perfil.png">
     <script type="application/ld+json">{!! json_encode($organizationLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+        $viteManifestExists = file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot'));
+    @endphp
+    @if ($viteManifestExists)
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
 </head>
 <body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
+    @unless ($viteManifestExists)
+        <div style="margin:16px;padding:12px 16px;border:1px solid #f3c7a4;background:#fff4ea;color:#6f2f12;font:14px/1.4 sans-serif">
+            Recursos de frontend indisponiveis no deploy atual. Falta publicar <code>public/build</code>.
+        </div>
+    @endunless
     <a href="#main-content" class="pb-skip-link pb-focus-ring">Ir para o conteúdo</a>
     <x-header />
 

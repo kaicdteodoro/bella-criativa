@@ -107,6 +107,13 @@ if ($step === 'diag') {
     echo "DB_DATABASE: " . ($m[1] ?? '(vazio)') . "\n";
     echo "</pre>";
 
+    echo "<h3 style='color:#ff0'>Assets Vite</h3><pre style='$pre'>";
+    $manifestPath = "$root/public/build/manifest.json";
+    echo file_exists($manifestPath)
+        ? "manifest.json: ✓ existe\n"
+        : "manifest.json: ✗ NAO EXISTE ($manifestPath)\n";
+    echo "</pre>";
+
     echo "<h3 style='color:#ff0'>Bootstrap Laravel</h3>";
     run(
         'config app.key / env APP_KEY',

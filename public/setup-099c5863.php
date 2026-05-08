@@ -73,6 +73,10 @@ if ($step === 'diag') {
     echo "DB_DATABASE: " . ($m[1] ?? '(vazio)') . "\n";
     echo "</pre>";
 
+    // Fix cache
+    echo "<h3 style='color:#ff0'>Limpar e re-cachear config</h3>";
+    run('optimize:clear + optimize', "$php $root/artisan optimize:clear && $php $root/artisan optimize", $pre);
+
     // DB connection
     echo "<h3 style='color:#ff0'>Conexão com banco</h3><pre style='$pre'>";
     run('teste de conexão', "$php $root/artisan migrate:status 2>&1 | head -5", $pre);

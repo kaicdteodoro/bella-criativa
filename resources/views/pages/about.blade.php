@@ -30,9 +30,9 @@
 <section class="grid grid-cols-2 gap-px bg-[var(--color-border)] border border-[var(--color-border)] lg:grid-cols-4">
     @foreach ([
         ['10+',       'anos no mercado'],
-        ['Brasil',    'atendimento remoto, nacional'],
+        ['Brasil',    'atendimento em todo o país'],
         ['5',         'técnicas de personalização'],
-        ['sem mín.',  'em vários produtos'],
+        ['Sem mínimo', 'em linhas selecionadas'],
     ] as [$num, $label])
     <div class="bg-[var(--color-bg)] px-8 py-8 lg:py-10">
         <p class="text-3xl font-semibold text-[var(--color-accent)] lg:text-4xl">{{ $num }}</p>
@@ -58,8 +58,8 @@
                 cuidado. Não era uma gráfica de volume — era personalização de verdade.
             </p>
             <p>
-                Hoje a Bella atende empresas de todo o Brasil, de São Paulo ao Amazonas, com o mesmo
-                princípio de sempre: você fala com quem executa, o produto sai como combinado.
+                Hoje a Bella atende empresas em todo o país, com o mesmo princípio de sempre:
+                você fala com quem executa, e o produto sai como combinado.
             </p>
         </div>
     </div>
@@ -128,7 +128,7 @@
 
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         @foreach ([
-            ['Sem mínimo em vários produtos',   'Você não precisa pedir 200 unidades para ter um brinde com a sua marca.'],
+            ['Sem quantidade mínima em linhas selecionadas', 'Você não precisa inflar o pedido para personalizar. Em várias linhas, a Bella atende também tiragens menores com o mesmo cuidado de acabamento.'],
             ['Artesanal com escala',             'A qualidade de acabamento de um produto feito com atenção — sem abrir mão de prazo.'],
             ['10 anos no mercado',               'Experiência real com o que funciona em personalização e o que não funciona.'],
             ['Atendimento direto',               'Você fala com quem executa. Sem intermediários, sem fila.'],

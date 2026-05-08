@@ -11,7 +11,7 @@
     <div class="mt-8 grid gap-6 border-t border-[var(--color-border)] pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <p class="max-w-lg text-lg leading-8 text-[var(--color-text-secondary)]">
             {{ $page?->sections?->where('type','hero')->first()?->content['text']
-                ?? 'Brindes, kits e produtos personalizados para empresas que se importam com o acabamento. Sem quantidade mínima em vários produtos.' }}
+                ?? 'Brindes, kits e produtos personalizados para empresas que valorizam acabamento, atendimento direto e opções sem quantidade mínima em linhas selecionadas.' }}
         </p>
         <div class="flex flex-wrap gap-4">
             <a href="{{ route('products.index') }}" class="pb-btn-primary pb-focus-ring inline-flex px-7 py-4 text-sm uppercase tracking-[0.18em]">
@@ -28,9 +28,9 @@
 <section class="grid grid-cols-2 gap-px bg-[var(--color-border)] border border-[var(--color-border)] my-12 lg:grid-cols-4">
     @foreach ([
         ['10+',      'anos no mercado'],
-        ['Nacional', 'atendimento remoto'],
+        ['Brasil',   'atendimento em todo o país'],
         ['5',        'técnicas de personalização'],
-        ['Sem mín.', 'em vários produtos'],
+        ['Sem mínimo', 'em linhas selecionadas'],
     ] as [$num, $label])
     <div class="bg-[var(--color-bg)] px-8 py-8">
         <p class="text-3xl font-semibold text-[var(--color-accent)]">{{ $num }}</p>

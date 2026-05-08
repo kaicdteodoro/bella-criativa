@@ -6,6 +6,10 @@ if (($_GET['token'] ?? '') !== '099c5863da2698db66adf41c') {
 
 $root = dirname(__DIR__);
 $php  = PHP_BINARY;
+$home = '/home2/pensandobem';
+
+putenv("HOME=$home");
+putenv("COMPOSER_HOME=$home/.composer");
 
 function run(string $label, string $cmd): void
 {

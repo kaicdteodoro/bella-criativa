@@ -1,15 +1,32 @@
 <x-filament-panels::page>
     <div class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        <form wire:submit="submit" class="space-y-6">
-            {{ $this->form }}
+        <div class="space-y-6">
+            <form wire:submit="submitApiSync" class="space-y-6">
+                {{ $this->apiSyncForm }}
 
-            <div class="flex items-center justify-end gap-3">
-                <x-filament::button type="submit" wire:loading.attr="disabled">
-                    <span wire:loading.remove wire:target="submit">Executar importação</span>
-                    <span wire:loading wire:target="submit">Importando...</span>
-                </x-filament::button>
-            </div>
-        </form>
+                <div class="rounded-xl border border-dashed border-gray-300 bg-white/70 p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+                    Sugestão para carga inicial: rode lotes de 50 por categoria com XBZ em dry-run primeiro, depois rode real.
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <x-filament::button type="submit" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="submitApiSync">Executar sync da API</span>
+                        <span wire:loading wire:target="submitApiSync">Sincronizando...</span>
+                    </x-filament::button>
+                </div>
+            </form>
+
+            <form wire:submit="submitImport" class="space-y-6">
+                {{ $this->importForm }}
+
+                <div class="flex items-center justify-end gap-3">
+                    <x-filament::button type="submit" color="gray" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="submitImport">Executar importação por planilha</span>
+                        <span wire:loading wire:target="submitImport">Importando...</span>
+                    </x-filament::button>
+                </div>
+            </form>
+        </div>
 
         <div class="space-y-4">
             <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">

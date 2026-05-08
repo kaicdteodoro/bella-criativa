@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use App\Models\ImportRun;
 use App\Services\Import\ImportBatchResult;
 use App\Services\Import\ImportCatalogRunner;
+use App\Services\Import\SyncApiRunner;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -39,17 +41,35 @@ class ImportCatalog extends Page implements HasForms
 
     protected string $view = 'filament.pages.import-catalog';
 
-    public ?array $data = [];
+    public ?array $importData = [];
+
+    public ?array $apiSyncData = [];
 
     public function mount(): void
     {
-        $this->form->fill([
+        $this->importForm->fill([
             'dry_run' => false,
             'resume' => true,
         ]);
+
+        $this->apiSyncForm->fill([
+            'source' => (string) config('catalog.suppliers.default', 'xbz'),
+            'categoria' => null,
+            'busca' => null,
+            'limit' => 50,
+            'dry_run' => true,
+        ]);
     }
 
-    public function form(Schema $schema): Schema
+    protected function getForms(): array
+    {
+        return [
+            'importForm',
+            'apiSyncForm',
+        ];
+    }
+
+    public function importForm(Schema $schema): Schema
     {
         return $schema
             ->components([
@@ -84,12 +104,50 @@ class ImportCatalog extends Page implements HasForms
                     ])
                     ->columns(2),
             ])
-            ->statePath('data');
+            ->statePath('importData');
     }
 
-    public function submit(ImportCatalogRunner $runner): void
+    public function apiSyncForm(Schema $schema): Schema
     {
-        $state = $this->form->getState();
+        return $schema
+            ->components([
+                Section::make('Sincronizar via API')
+                    ->description('Importe lotes da XBZ ou de outros fornecedores sem subir planilha.')
+                    ->schema([
+                        Select::make('source')
+                            ->label('Fornecedor')
+                            ->options([
+                                'xbz' => 'XBZ',
+                                'asia' => 'Asia Import',
+                                'all' => 'Todos',
+                            ])
+                            ->required()
+                            ->native(false),
+                        Select::make('categoria')
+                            ->label('Preset de categoria')
+                            ->options($this->getApiSyncPresetOptions())
+                            ->placeholder('Sem preset')
+                            ->native(false),
+                        TextInput::make('busca')
+                            ->label('Busca livre')
+                            ->placeholder('Ex.: kit vinho, caneca, speaker'),
+                        TextInput::make('limit')
+                            ->label('Limite de produtos')
+                            ->numeric()
+                            ->minValue(1)
+                            ->placeholder('Ex.: 50'),
+                        Toggle::make('dry_run')
+                            ->label('Rodar em dry-run')
+                            ->helperText('Busca produtos e processa imagens sem gravar no banco.'),
+                    ])
+                    ->columns(2),
+            ])
+            ->statePath('apiSyncData');
+    }
+
+    public function submitImport(ImportCatalogRunner $runner): void
+    {
+        $state = $this->importForm->getState();
         $relativePath = (string) ($state['file'] ?? '');
 
         if ($relativePath === '') {
@@ -113,9 +171,9 @@ class ImportCatalog extends Page implements HasForms
                 'original_filename' => $state['original_filename'] ?? basename($relativePath),
             ]);
 
-            $this->notifyBatch($batch);
+            $this->notifyBatch($batch, 'Importação concluída');
 
-            $this->form->fill([
+            $this->importForm->fill([
                 'source' => $state['source'] ?? null,
                 'dry_run' => false,
                 'resume' => true,
@@ -123,6 +181,40 @@ class ImportCatalog extends Page implements HasForms
         } catch (Throwable $exception) {
             Notification::make()
                 ->title('A importação falhou')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function submitApiSync(SyncApiRunner $runner): void
+    {
+        $state = $this->apiSyncForm->getState();
+        $source = (string) ($state['source'] ?? config('catalog.suppliers.default', 'xbz'));
+
+        try {
+            $batch = $runner->run($source, [
+                'dry_run' => (bool) ($state['dry_run'] ?? false),
+                'limit' => filled($state['limit'] ?? null) ? (int) $state['limit'] : null,
+                'search_terms' => $this->resolveApiSyncSearchTerms(
+                    $state['categoria'] ?? null,
+                    $state['busca'] ?? null,
+                ),
+                'initiated_via' => 'admin',
+            ]);
+
+            $this->notifyBatch($batch, 'Sincronização concluída');
+
+            $this->apiSyncForm->fill([
+                'source' => $source,
+                'categoria' => $state['categoria'] ?? null,
+                'busca' => $state['busca'] ?? null,
+                'limit' => $state['limit'] ?? 50,
+                'dry_run' => false,
+            ]);
+        } catch (Throwable $exception) {
+            Notification::make()
+                ->title('A sincronização da API falhou')
                 ->body($exception->getMessage())
                 ->danger()
                 ->send();
@@ -167,12 +259,20 @@ class ImportCatalog extends Page implements HasForms
         return $this->buildRunSummary($run);
     }
 
-    private function notifyBatch(ImportBatchResult $batch): void
+    /**
+     * @return array<string, string>
+     */
+    public function apiPresetOptions(): array
+    {
+        return $this->getApiSyncPresetOptions();
+    }
+
+    private function notifyBatch(ImportBatchResult $batch, string $title): void
     {
         $totals = $batch->totals();
 
         Notification::make()
-            ->title('Importação concluída')
+            ->title($title)
             ->body("Criados: {$totals['created']} | Atualizados: {$totals['updated']} | Pulados: {$totals['skipped']} | Falhas: {$totals['failed']}")
             ->color($batch->failedCount() > 0 ? 'warning' : 'success')
             ->send();
@@ -226,5 +326,46 @@ class ImportCatalog extends Page implements HasForms
     private function formatDate(?Carbon $value): string
     {
         return $value?->format('d/m/Y H:i:s') ?? '-';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getApiSyncPresetOptions(): array
+    {
+        return collect((array) config('catalog.api_sync.category_search_presets', []))
+            ->keys()
+            ->mapWithKeys(fn (string $key): array => [$key => str($key)->replace('-', ' ')->title()->value()])
+            ->all();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function resolveApiSyncSearchTerms(mixed $categoria, mixed $busca): array
+    {
+        $search = trim((string) $busca);
+
+        if ($search !== '') {
+            return collect(explode(',', $search))
+                ->map(fn (string $term): string => trim(mb_strtolower($term)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        $categoryKey = trim(mb_strtolower((string) $categoria));
+
+        if ($categoryKey === '') {
+            return [];
+        }
+
+        return collect((array) config("catalog.api_sync.category_search_presets.{$categoryKey}", []))
+            ->map(fn (mixed $term): string => trim(mb_strtolower((string) $term)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

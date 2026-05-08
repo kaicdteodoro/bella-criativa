@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\WithPagination;
@@ -54,7 +55,7 @@ class ImportCatalog extends Page implements HasForms
 
         $this->apiSyncForm->fill([
             'source' => (string) config('catalog.suppliers.default', 'xbz'),
-            'categoria' => null,
+            'categoria' => [],
             'busca' => null,
             'limit' => 50,
             'dry_run' => true,
@@ -127,6 +128,9 @@ class ImportCatalog extends Page implements HasForms
                             ->label('Preset de categoria')
                             ->options($this->getApiSyncPresetOptions())
                             ->placeholder('Sem preset')
+                            ->helperText('Você pode selecionar várias categorias. O limite será aplicado para cada uma.')
+                            ->multiple()
+                            ->searchable()
                             ->native(false),
                         TextInput::make('busca')
                             ->label('Busca livre')
@@ -191,23 +195,40 @@ class ImportCatalog extends Page implements HasForms
     {
         $state = $this->apiSyncForm->getState();
         $source = (string) ($state['source'] ?? config('catalog.suppliers.default', 'xbz'));
+        $categoryKeys = $this->normalizeApiSyncCategoryKeys($state['categoria'] ?? []);
+        $search = trim((string) ($state['busca'] ?? ''));
 
         try {
-            $batch = $runner->run($source, [
-                'dry_run' => (bool) ($state['dry_run'] ?? false),
-                'limit' => filled($state['limit'] ?? null) ? (int) $state['limit'] : null,
-                'search_terms' => $this->resolveApiSyncSearchTerms(
-                    $state['categoria'] ?? null,
-                    $state['busca'] ?? null,
-                ),
-                'initiated_via' => 'admin',
-            ]);
+            $batches = collect();
 
-            $this->notifyBatch($batch, 'Sincronização concluída');
+            if ($categoryKeys !== []) {
+                foreach ($categoryKeys as $categoryKey) {
+                    $batches->push($runner->run($source, [
+                        'dry_run' => (bool) ($state['dry_run'] ?? false),
+                        'limit' => filled($state['limit'] ?? null) ? (int) $state['limit'] : null,
+                        'search_terms' => $this->resolveApiSyncSearchTerms($categoryKey, null),
+                        'initiated_via' => 'admin',
+                    ]));
+                }
+            } else {
+                $batches->push($runner->run($source, [
+                    'dry_run' => (bool) ($state['dry_run'] ?? false),
+                    'limit' => filled($state['limit'] ?? null) ? (int) $state['limit'] : null,
+                    'search_terms' => $this->resolveApiSyncSearchTerms([], $search),
+                    'initiated_via' => 'admin',
+                ]));
+            }
+
+            $batch = $this->mergeBatches($batches);
+            $title = $categoryKeys !== []
+                ? 'Sincronização em lote concluída'
+                : 'Sincronização concluída';
+
+            $this->notifyBatch($batch, $title);
 
             $this->apiSyncForm->fill([
                 'source' => $source,
-                'categoria' => $state['categoria'] ?? null,
+                'categoria' => $categoryKeys,
                 'busca' => $state['busca'] ?? null,
                 'limit' => $state['limit'] ?? 50,
                 'dry_run' => false,
@@ -276,6 +297,17 @@ class ImportCatalog extends Page implements HasForms
             ->body("Criados: {$totals['created']} | Atualizados: {$totals['updated']} | Pulados: {$totals['skipped']} | Falhas: {$totals['failed']}")
             ->color($batch->failedCount() > 0 ? 'warning' : 'success')
             ->send();
+    }
+
+    /**
+     * @param  Collection<int, ImportBatchResult>  $batches
+     */
+    private function mergeBatches(Collection $batches): ImportBatchResult
+    {
+        return new ImportBatchResult(
+            totalRows: $batches->sum(fn (ImportBatchResult $batch): int => $batch->totalRows),
+            results: $batches->flatMap(fn (ImportBatchResult $batch) => $batch->results)->values(),
+        );
     }
 
     private function buildRunSummary(ImportRun $run): string
@@ -355,6 +387,10 @@ class ImportCatalog extends Page implements HasForms
                 ->all();
         }
 
+        if (is_array($categoria)) {
+            return [];
+        }
+
         $categoryKey = trim(mb_strtolower((string) $categoria));
 
         if ($categoryKey === '') {
@@ -363,6 +399,25 @@ class ImportCatalog extends Page implements HasForms
 
         return collect((array) config("catalog.api_sync.category_search_presets.{$categoryKey}", []))
             ->map(fn (mixed $term): string => trim(mb_strtolower((string) $term)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function normalizeApiSyncCategoryKeys(mixed $categoria): array
+    {
+        if (! is_array($categoria)) {
+            $value = trim(mb_strtolower((string) $categoria));
+
+            return $value !== '' ? [$value] : [];
+        }
+
+        return collect($categoria)
+            ->map(fn (mixed $value): string => trim(mb_strtolower((string) $value)))
             ->filter()
             ->unique()
             ->values()

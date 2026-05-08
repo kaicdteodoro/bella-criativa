@@ -76,10 +76,25 @@ function buildEnvFile(array $values): string
     return implode("\n", $lines) . "\n";
 }
 
+function maskEnvValue(string $value): string
+{
+    $trimmed = trim($value);
+
+    if ($trimmed === '') {
+        return '(vazio)';
+    }
+
+    if (strlen($trimmed) <= 8) {
+        return str_repeat('*', strlen($trimmed));
+    }
+
+    return substr($trimmed, 0, 4) . str_repeat('*', max(strlen($trimmed) - 8, 0)) . substr($trimmed, -4);
+}
+
 header('Content-Type: text/html; charset=utf-8');
 echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Bella Criativa Setup</title></head><body style='$style'>";
 echo "<h1>Bella Criativa — Setup</h1>";
-echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=repair' style='color:#0af'>→ Reparar APP_KEY</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=probe' style='color:#0af'>→ Provar rota /</a></p>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=repair' style='color:#0af'>→ Reparar APP_KEY</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=probe' style='color:#0af'>→ Provar rota /</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=credentials' style='color:#0af'>→ Credenciais .env</a></p>";
 
 $step = $_GET['step'] ?? 'setup';
 
@@ -112,6 +127,19 @@ if ($step === 'diag') {
     echo file_exists($manifestPath)
         ? "manifest.json: ✓ existe\n"
         : "manifest.json: ✗ NAO EXISTE ($manifestPath)\n";
+    echo "</pre>";
+
+    echo "<h3 style='color:#ff0'>Credenciais de integrações</h3><pre style='$pre'>";
+    $envValues = readEnvFile("$root/.env");
+    foreach ([
+        'XBZ_CNPJ',
+        'XBZ_TOKEN',
+        'ASIA_IMPORT_API_KEY',
+        'ASIA_IMPORT_SECRET_KEY',
+        'GROQ_API_KEY',
+    ] as $key) {
+        echo $key . ': ' . maskEnvValue((string) ($envValues[$key] ?? '')) . "\n";
+    }
     echo "</pre>";
 
     echo "<h3 style='color:#ff0'>Bootstrap Laravel</h3>";
@@ -147,6 +175,57 @@ if ($step === 'diag') {
     }
     echo "</pre>";
 
+    echo "</body></html>";
+    exit;
+}
+
+// ─── EDIÇÃO DE CREDENCIAIS .ENV ─────────────────────────────
+if ($step === 'credentials') {
+    echo "<h2>Credenciais do .env</h2>";
+
+    $envPath = "$root/.env";
+    $envValues = readEnvFile($envPath);
+    $editableKeys = [
+        'XBZ_CNPJ',
+        'XBZ_TOKEN',
+        'ASIA_IMPORT_API_KEY',
+        'ASIA_IMPORT_SECRET_KEY',
+        'GROQ_API_KEY',
+        'WHATSAPP_NUMBER',
+    ];
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        foreach ($editableKeys as $key) {
+            if (! array_key_exists($key, $_POST)) {
+                continue;
+            }
+
+            $envValues[$key] = trim((string) $_POST[$key]);
+        }
+
+        file_put_contents($envPath, buildEnvFile($envValues));
+
+        echo "<h3 style='color:#ff0'>▶ Credenciais atualizadas</h3><pre style='$pre'>";
+        foreach ($editableKeys as $key) {
+            echo $key . ': ' . maskEnvValue((string) ($envValues[$key] ?? '')) . "\n";
+        }
+        echo "</pre>";
+        echo "<p><a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Rodar diagnóstico novamente</a></p>";
+        echo "</body></html>";
+        exit;
+    }
+
+    echo "<p style='max-width:780px;color:#ccc'>Edite abaixo as credenciais sensiveis que faltam no ambiente de producao. Depois salve e rode o diagnostico novamente para recachear o Laravel.</p>";
+    echo "<form method='POST' style='max-width:780px'>";
+
+    foreach ($editableKeys as $key) {
+        $value = htmlspecialchars((string) ($envValues[$key] ?? ''), ENT_QUOTES, 'UTF-8');
+        $type = str_contains($key, 'TOKEN') || str_contains($key, 'KEY') ? 'password' : 'text';
+        echo "<p><label>{$key}<br><input name='{$key}' type='{$type}' value='{$value}' style='width:100%;padding:8px;background:#222;color:#eee;border:1px solid #555'></label></p>";
+    }
+
+    echo "<p><button type='submit' style='background:#0a0;color:#fff;padding:10px 20px;border:none;cursor:pointer'>Salvar credenciais</button></p>";
+    echo "</form>";
     echo "</body></html>";
     exit;
 }

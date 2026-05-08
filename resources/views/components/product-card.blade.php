@@ -40,7 +40,7 @@
                         @php($normalized = $isHex ? strtoupper($color) : '')
                         @php($colorName = $isHex ? (config('catalog.color_names')[$normalized] ?? 'Cor personalizada') : 'Cor')
                         <span
-                            class="h-4 w-4 rounded-full border border-white/60 shadow-[0_0_0_1px_rgba(0,0,0,0.16)]"
+                            class="h-4 w-4 rounded-[3px] border border-white/60 shadow-[0_0_0_1px_rgba(0,0,0,0.16)]"
                             style="{{ $isHex ? 'background-color: '.$color.';' : 'background-color: transparent;' }}"
                             title="{{ $colorName }}"
                         ></span>

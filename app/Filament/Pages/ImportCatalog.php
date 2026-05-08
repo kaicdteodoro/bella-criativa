@@ -330,6 +330,30 @@ class ImportCatalog extends Page implements HasForms
         ]);
     }
 
+    public function clearImportHistory(): void
+    {
+        ImportRun::query()->delete();
+
+        Notification::make()
+            ->title('Histórico limpo')
+            ->body('Todas as execuções registradas foram removidas.')
+            ->success()
+            ->send();
+
+        $this->resetPage();
+    }
+
+    public function clearRunningImportHistory(): void
+    {
+        $count = ImportRun::query()->where('status', 'running')->delete();
+
+        Notification::make()
+            ->title('Execuções em andamento removidas')
+            ->body("Registros removidos: {$count}.")
+            ->color($count > 0 ? 'warning' : 'gray')
+            ->send();
+    }
+
     private function notifyBatch(ImportBatchResult $batch, string $title): void
     {
         $totals = $batch->totals();

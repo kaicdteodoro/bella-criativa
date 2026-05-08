@@ -249,7 +249,7 @@
                             title="{{ $colorName }}"
                         >
                             <span
-                                class="block h-6 w-6 rounded-full border border-[var(--color-border)] transition group-hover:scale-110"
+                                class="block h-6 w-6 rounded-[4px] border border-[var(--color-border)] transition group-hover:scale-110"
                                 style="{{ $isHex ? 'background-color: '.$color.';' : '' }}"
                             ></span>
                             <span class="text-sm text-[var(--color-text-secondary)]">{{ $colorName }}</span>

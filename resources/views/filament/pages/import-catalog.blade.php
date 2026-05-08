@@ -93,10 +93,19 @@
             <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h3 class="text-base font-semibold text-gray-950 dark:text-white">Histórico recente</h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">As 5 últimas execuções para consulta rápida.</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <x-filament::button size="sm" color="gray" wire:click="clearRunningImportHistory">
+                        Limpar travadas
+                    </x-filament::button>
+                    <x-filament::button size="sm" color="danger" wire:click="clearImportHistory">
+                        Limpar histórico
+                    </x-filament::button>
+                </div>
             </div>
 
             @forelse ($this->recentRuns as $run)
                 <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+                    @php($successfulCount = max(($run->total_rows ?? 0) - ($run->failed_count ?? 0), 0))
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h4 class="text-sm font-semibold text-gray-950 dark:text-white">{{ $run->original_filename ?? basename($run->file_path) }}</h4>
@@ -139,6 +148,14 @@
                         </div>
                     </dl>
 
+                    <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <span class="font-medium text-gray-950 dark:text-white">Leitura rápida:</span>
+                            <span class="text-gray-600 dark:text-gray-300">{{ $successfulCount }} item(ns) sem falha</span>
+                            <span class="text-gray-600 dark:text-gray-300">{{ $run->dry_run ? 'dry-run: nada foi gravado' : 'execução real: itens válidos foram gravados' }}</span>
+                        </div>
+                    </div>
+
                     <div class="mt-4 flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
                         @if ($run->source)
                             <span>Fornecedor: {{ $run->source }}</span>
@@ -161,11 +178,17 @@
                             @endif
 
                             @if (filled($run->failed_items))
-                                <ul class="mt-2 space-y-1">
-                                    @foreach (array_slice($run->failed_items, 0, 5) as $item)
-                                        <li><strong>{{ $item['sku'] }}</strong>: {{ $item['reason'] ?? 'Falha sem detalhe.' }}</li>
-                                    @endforeach
-                                </ul>
+                                <details class="mt-2">
+                                    <summary class="cursor-pointer font-medium">Ver falhas desta execução ({{ count($run->failed_items) }})</summary>
+                                    <ul class="mt-3 space-y-2">
+                                        @foreach (array_slice($run->failed_items, 0, 8) as $item)
+                                            <li class="rounded-md bg-white/70 px-3 py-2 dark:bg-black/10">
+                                                <strong>{{ $item['sku'] }}</strong><br>
+                                                <span>{{ $item['reason'] ?? 'Falha sem detalhe.' }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </details>
                             @endif
                         </div>
                     @endif
@@ -187,6 +210,7 @@
         <div class="space-y-4">
             @foreach ($this->historyRuns as $run)
                 <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+                    @php($successfulCount = max(($run->total_rows ?? 0) - ($run->failed_count ?? 0), 0))
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h4 class="text-sm font-semibold text-gray-950 dark:text-white">{{ $run->original_filename ?? basename($run->file_path) }}</h4>
@@ -233,6 +257,14 @@
                         </div>
                     </dl>
 
+                    <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm dark:border-white/10 dark:bg-white/5">
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <span class="font-medium text-gray-950 dark:text-white">Leitura rápida:</span>
+                            <span class="text-gray-600 dark:text-gray-300">{{ $successfulCount }} item(ns) sem falha</span>
+                            <span class="text-gray-600 dark:text-gray-300">{{ $run->dry_run ? 'dry-run: nada foi gravado' : 'execução real: itens válidos foram gravados' }}</span>
+                        </div>
+                    </div>
+
                     @php($runSummary = $this->formatRunSummary($run))
                     <div class="mt-4 flex flex-wrap items-center gap-2" x-data="{ summary: @js($runSummary) }">
                         <x-filament::button size="sm" color="gray" wire:click="downloadSummary({{ $run->id }})" wire:loading.attr="disabled">
@@ -251,9 +283,9 @@
                             @endif
 
                             @if (filled($run->failed_items))
-                                <ul class="mt-2 space-y-1">
+                                <ul class="mt-2 space-y-2">
                                     @foreach ($run->failed_items as $item)
-                                        <li><strong>{{ $item['sku'] }}</strong>: {{ $item['reason'] ?? 'Falha sem detalhe.' }}</li>
+                                        <li class="rounded-md bg-white/70 px-3 py-2 dark:bg-black/10"><strong>{{ $item['sku'] }}</strong><br>{{ $item['reason'] ?? 'Falha sem detalhe.' }}</li>
                                     @endforeach
                                 </ul>
                             @endif

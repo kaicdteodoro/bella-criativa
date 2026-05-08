@@ -6,8 +6,10 @@ Este fluxo automatiza o deploy de `main` para produção no cPanel via SSH, com 
 
 1. GitHub Actions roda em push na `main` (ou manual via `workflow_dispatch`).
 2. Faz `npm ci` e `npm run build` no runner.
-3. Envia arquivos para o servidor via `rsync` (sem `.env`, sem `vendor`).
-4. No servidor, executa:
+3. Valida `public/build/manifest.json` no runner.
+4. Envia o projeto para o servidor via `rsync` (sem `.env`, sem `vendor`).
+5. Sincroniza `public/build/` em um passo dedicado para garantir CSS/JS do Vite em produção.
+6. No servidor, executa:
    - `composer install --no-dev`
    - `php artisan migrate --force`
    - `php artisan storage:link`

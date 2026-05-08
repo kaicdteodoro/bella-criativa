@@ -51,6 +51,8 @@ php artisan filament:user
 
 Depois disso, os próximos deploys ficam automáticos.
 
+Importante: em deploys posteriores, nao recrie nem sobrescreva o `.env`. Preserve o `APP_KEY` existente e apenas ajuste variaveis pontuais quando necessario.
+
 ## Go-live rápido (ordem recomendada)
 
 1. Garantir `.env` de produção:
@@ -73,4 +75,3 @@ Se precisar voltar:
 1. Reverter o commit problemático na `main`.
 2. Fazer push.
 3. Workflow roda novamente e restaura a versão anterior.
-

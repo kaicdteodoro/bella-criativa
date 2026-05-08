@@ -42,10 +42,44 @@ function run(string $label, string $cmd, string $pre): int
     return $code;
 }
 
+function readEnvFile(string $path): array
+{
+    if (!file_exists($path)) {
+        return [];
+    }
+
+    $values = [];
+    $lines = file($path, FILE_IGNORE_NEW_LINES);
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+
+        if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+            continue;
+        }
+
+        [$key, $value] = array_pad(explode('=', $line, 2), 2, '');
+        $values[trim($key)] = trim($value);
+    }
+
+    return $values;
+}
+
+function buildEnvFile(array $values): string
+{
+    $lines = [];
+
+    foreach ($values as $key => $value) {
+        $lines[] = $key . '=' . $value;
+    }
+
+    return implode("\n", $lines) . "\n";
+}
+
 header('Content-Type: text/html; charset=utf-8');
 echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Bella Criativa Setup</title></head><body style='$style'>";
 echo "<h1>Bella Criativa — Setup</h1>";
-echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a></p>";
+echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Diagnóstico 500</a> &nbsp;|&nbsp; <a href='?token=099c5863da2698db66adf41c&step=repair' style='color:#0af'>→ Reparar APP_KEY</a></p>";
 
 $step = $_GET['step'] ?? 'setup';
 
@@ -113,6 +147,41 @@ if ($step === 'diag') {
     exit;
 }
 
+// ─── REPARO APP_KEY / CACHE ─────────────────────────────────
+if ($step === 'repair') {
+    echo "<h2>Reparo APP_KEY</h2>";
+
+    $envPath = "$root/.env";
+    $currentEnv = readEnvFile($envPath);
+    $appKeyExists = !empty(trim($currentEnv['APP_KEY'] ?? ''));
+
+    echo "<h3 style='color:#ff0'>Estado atual</h3><pre style='$pre'>";
+    echo file_exists($envPath) ? ".env encontrado\n" : ".env nao encontrado\n";
+    echo $appKeyExists ? "APP_KEY presente\n" : "APP_KEY ausente ou vazia\n";
+    echo "</pre>";
+
+    run('1. Limpar caches', "$php $root/artisan optimize:clear", $pre);
+
+    if (! $appKeyExists) {
+        run('2. Gerar APP_KEY', "$php $root/artisan key:generate --force", $pre);
+    } else {
+        echo "<h3 style='color:#ff0'>▶ 2. Gerar APP_KEY</h3><pre style='$pre'>Ignorado: APP_KEY ja existe no .env</pre>";
+    }
+
+    run('3. Recriar caches', "$php $root/artisan optimize", $pre);
+
+    $updatedEnv = readEnvFile($envPath);
+    $updatedAppKey = trim($updatedEnv['APP_KEY'] ?? '');
+
+    echo "<h3 style='color:#ff0'>Resultado</h3><pre style='$pre'>";
+    echo $updatedAppKey !== '' ? "APP_KEY final: $updatedAppKey\n" : "APP_KEY final: (vazia)\n";
+    echo "</pre>";
+
+    echo "<p><a href='?token=099c5863da2698db66adf41c&step=diag' style='color:#0af'>→ Rodar diagnóstico novamente</a></p>";
+    echo "</body></html>";
+    exit;
+}
+
 // ─── CRIAR USUÁRIO ADMIN ─────────────────────────────────────
 if ($step === 'user') {
     echo "<h2>Criar usuário admin</h2>";
@@ -149,73 +218,78 @@ HTML;
 // ─── SETUP PRINCIPAL ─────────────────────────────────────────
 run('1. Composer install', "cd $root && composer install --no-dev --optimize-autoloader", $pre);
 
-$env = <<<ENV
-APP_NAME="Bella Criativa"
-APP_ENV=production
-APP_KEY=
-APP_DEBUG=false
-APP_URL=https://bellacria.com.br
-APP_TIMEZONE=America/Sao_Paulo
-APP_LOCALE=pt_BR
-APP_FALLBACK_LOCALE=pt_BR
-APP_FAKER_LOCALE=pt_BR
-APP_MAINTENANCE_DRIVER=file
+$envPath = "$root/.env";
+$envExisted = file_exists($envPath);
+$currentEnv = readEnvFile($envPath);
+$defaults = [
+    'APP_NAME' => '"Bella Criativa"',
+    'APP_ENV' => 'production',
+    'APP_DEBUG' => 'false',
+    'APP_URL' => 'https://bellacria.com.br',
+    'APP_TIMEZONE' => 'America/Sao_Paulo',
+    'APP_LOCALE' => 'pt_BR',
+    'APP_FALLBACK_LOCALE' => 'pt_BR',
+    'APP_FAKER_LOCALE' => 'pt_BR',
+    'APP_MAINTENANCE_DRIVER' => 'file',
+    'BCRYPT_ROUNDS' => '12',
+    'LOG_CHANNEL' => 'stack',
+    'LOG_STACK' => 'single',
+    'LOG_DEPRECATIONS_CHANNEL' => 'null',
+    'LOG_LEVEL' => 'error',
+    'DB_CONNECTION' => 'mysql',
+    'DB_HOST' => 'localhost',
+    'DB_PORT' => '3306',
+    'DB_DATABASE' => 'pensandobem_bella_criativa',
+    'DB_USERNAME' => 'pensandobem_bella_criativa',
+    'DB_PASSWORD' => '"$B3ll4Cr14t1v4"',
+    'SESSION_DRIVER' => 'database',
+    'SESSION_LIFETIME' => '120',
+    'SESSION_ENCRYPT' => 'false',
+    'SESSION_PATH' => '/',
+    'SESSION_DOMAIN' => 'null',
+    'BROADCAST_CONNECTION' => 'log',
+    'FILESYSTEM_DISK' => 'public',
+    'QUEUE_CONNECTION' => 'database',
+    'WHATSAPP_NUMBER' => '5516994492382',
+    'IMPORT_IMAGE_QUALITY' => '80',
+    'IMPORT_DOWNLOAD_TIMEOUT' => '30',
+    'IMPORT_DOWNLOAD_ATTEMPTS' => '3',
+    'XBZ_CNPJ' => '',
+    'XBZ_TOKEN' => '',
+    'ASIA_IMPORT_API_KEY' => '',
+    'ASIA_IMPORT_SECRET_KEY' => '',
+    'CATALOG_AI_CURATION_ENABLED' => 'false',
+    'CATALOG_AI_PROVIDER' => 'groq',
+    'CATALOG_AI_MODEL' => 'llama-3.3-70b-versatile',
+    'GROQ_API_KEY' => '',
+    'CATALOG_AI_TIMEOUT' => '300',
+    'CATALOG_AI_BATCH_SIZE' => '3',
+    'RESPONSE_CACHE_ENABLED' => 'true',
+    'CACHE_STORE' => 'database',
+    'MAIL_MAILER' => 'log',
+    'MAIL_FROM_ADDRESS' => '"contato@bellacriativa.com.br"',
+    'MAIL_FROM_NAME' => '"Bella Criativa"',
+];
 
-BCRYPT_ROUNDS=12
+$envValues = array_replace($defaults, $currentEnv);
 
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_DEPRECATIONS_CHANNEL=null
-LOG_LEVEL=error
+file_put_contents($envPath, buildEnvFile($envValues));
 
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=pensandobem_bella_criativa
-DB_USERNAME=pensandobem_bella_criativa
-DB_PASSWORD="\$B3ll4Cr14t1v4"
+$appKeyExists = !empty(trim($envValues['APP_KEY'] ?? ''));
+$envLabel = $envExisted ? '.env atualizado preservando valores existentes' : '.env criado';
 
-SESSION_DRIVER=database
-SESSION_LIFETIME=120
-SESSION_ENCRYPT=false
-SESSION_PATH=/
-SESSION_DOMAIN=null
-
-BROADCAST_CONNECTION=log
-FILESYSTEM_DISK=public
-QUEUE_CONNECTION=database
-
-WHATSAPP_NUMBER=5516994492382
-IMPORT_IMAGE_QUALITY=80
-IMPORT_DOWNLOAD_TIMEOUT=30
-IMPORT_DOWNLOAD_ATTEMPTS=3
-
-XBZ_CNPJ=
-XBZ_TOKEN=
-
-ASIA_IMPORT_API_KEY=
-ASIA_IMPORT_SECRET_KEY=
-
-CATALOG_AI_CURATION_ENABLED=false
-CATALOG_AI_PROVIDER=groq
-CATALOG_AI_MODEL=llama-3.3-70b-versatile
-GROQ_API_KEY=
-CATALOG_AI_TIMEOUT=300
-CATALOG_AI_BATCH_SIZE=3
-
-RESPONSE_CACHE_ENABLED=true
-CACHE_STORE=database
-
-MAIL_MAILER=log
-MAIL_FROM_ADDRESS="contato@bellacriativa.com.br"
-MAIL_FROM_NAME="Bella Criativa"
-ENV;
-
-file_put_contents("$root/.env", $env);
-echo "<h3 style='color:#ff0'>▶ 2. .env criado</h3><pre style='$pre'>OK</pre>";
+echo "<h3 style='color:#ff0'>▶ 2. $envLabel</h3><pre style='$pre'>";
+echo $appKeyExists
+    ? "APP_KEY preservada\n"
+    : "APP_KEY ausente, sera gerada no proximo passo\n";
+echo "</pre>";
 ob_flush(); flush();
 
-run('3. php artisan key:generate', "$php $root/artisan key:generate --force", $pre);
+if (! $appKeyExists) {
+    run('3. php artisan key:generate', "$php $root/artisan key:generate --force", $pre);
+} else {
+    echo "<h3 style='color:#ff0'>▶ 3. php artisan key:generate</h3><pre style='$pre'>Ignorado: APP_KEY ja existe no .env</pre>";
+}
 run('4. php artisan migrate',      "$php $root/artisan migrate --force", $pre);
 run('5. php artisan db:seed',      "$php $root/artisan db:seed --force", $pre);
 run('6. php artisan storage:link', "$php $root/artisan storage:link --force", $pre);

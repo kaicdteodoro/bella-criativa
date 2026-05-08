@@ -80,10 +80,26 @@ if ($step === 'diag') {
 
     // Laravel log tail
     $log = "$root/storage/logs/laravel.log";
-    echo "<h3 style='color:#ff0'>Últimas linhas do log</h3><pre style='$pre'>";
+    echo "<h3 style='color:#ff0'>Causa raiz do erro (últimas exceções)</h3><pre style='$pre'>";
     if (file_exists($log)) {
-        $lines = array_slice(file($log), -30);
-        echo htmlspecialchars(implode('', $lines));
+        $content = file_get_contents($log);
+        // Pega os últimos 3 blocos de log (separados por newline+{)
+        $entries = preg_split('/\n(?=\{)/', $content);
+        $last    = array_slice($entries, -3);
+        foreach ($last as $entry) {
+            $decoded = json_decode($entry, true);
+            if ($decoded) {
+                echo "── " . ($decoded['datetime'] ?? '') . " ──\n";
+                echo "Nível:   " . ($decoded['level_name'] ?? '') . "\n";
+                echo "Mensagem: " . ($decoded['message'] ?? '') . "\n";
+                if (!empty($decoded['context']['exception'])) {
+                    echo "Exceção:  " . $decoded['context']['exception'] . "\n";
+                }
+            } else {
+                echo htmlspecialchars(substr($entry, 0, 500)) . "\n";
+            }
+            echo "\n";
+        }
     } else {
         echo "Sem log ainda.";
     }

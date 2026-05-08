@@ -4,6 +4,11 @@ if (($_GET['token'] ?? '') !== '099c5863da2698db66adf41c') {
     die('Forbidden');
 }
 
+@ini_set('output_buffering', 'off');
+@ini_set('zlib.output_compression', false);
+@ini_set('max_execution_time', 300);
+while (@ob_end_flush()) {}
+
 $root = dirname(__DIR__);
 $php  = PHP_BINARY;
 $home = '/home2/pensandobem';
@@ -11,26 +16,35 @@ $home = '/home2/pensandobem';
 putenv("HOME=$home");
 putenv("COMPOSER_HOME=$home/.composer");
 
-function run(string $label, string $cmd): void
+function run(string $label, string $cmd): int
 {
-    echo "<h3>$label</h3><pre style='background:#111;color:#0f0;padding:12px;white-space:pre-wrap'>";
-    flush();
-    $output = [];
-    exec($cmd . ' 2>&1', $output, $code);
-    echo htmlspecialchars(implode("\n", $output));
-    echo "\n\n<b>Exit: $code</b></pre>";
-    flush();
+    echo "<h3 style='color:#ff0'>▶ $label</h3>";
+    echo "<pre style='background:#111;color:#0f0;padding:12px;white-space:pre-wrap'>$ $cmd\n\n";
+    ob_flush(); flush();
+
+    $handle = popen($cmd . ' 2>&1', 'r');
+    while (!feof($handle)) {
+        $line = fgets($handle, 4096);
+        if ($line !== false) {
+            echo htmlspecialchars($line);
+            ob_flush(); flush();
+        }
+    }
+    $code = pclose($handle);
+    $color = $code === 0 ? '#0f0' : '#f44';
+    echo "\n<b style='color:$color'>Exit: $code</b></pre>";
+    ob_flush(); flush();
+    return $code;
 }
 
 header('Content-Type: text/html; charset=utf-8');
-echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bella Criativa Setup</title></head><body style="font-family:monospace;background:#1a1a1a;color:#eee;padding:20px">';
+echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bella Criativa Setup</title></head>';
+echo '<body style="font-family:monospace;background:#1a1a1a;color:#eee;padding:20px">';
 echo '<h1>Bella Criativa — Setup</h1>';
+ob_flush(); flush();
 
 // 1. Composer
-run(
-    '1. Composer install',
-    "cd $root && composer install --no-dev --optimize-autoloader"
-);
+run('1. Composer install', "cd $root && composer install --no-dev --optimize-autoloader");
 
 // 2. .env
 $env = <<<ENV
@@ -84,7 +98,8 @@ MAIL_FROM_NAME="Bella Criativa"
 ENV;
 
 file_put_contents("$root/.env", $env);
-echo '<h3>2. .env criado</h3><pre style="background:#111;color:#0f0;padding:12px">OK</pre>';
+echo '<h3 style="color:#ff0">▶ 2. .env criado</h3><pre style="background:#111;color:#0f0;padding:12px">OK</pre>';
+ob_flush(); flush();
 
 // 3. Key generate
 run('3. php artisan key:generate', "$php $root/artisan key:generate --force");
@@ -98,10 +113,10 @@ run('5. php artisan db:seed', "$php $root/artisan db:seed --force");
 // 6. Storage link
 run('6. php artisan storage:link', "$php $root/artisan storage:link --force");
 
-// 7. Cache
+// 7. Optimize
 run('7. php artisan optimize', "$php $root/artisan optimize");
 
-echo '<h2 style="color:#0f0">✓ Setup concluído</h2>';
-echo '<p style="color:#f80"><b>IMPORTANTE:</b> Delete este arquivo imediatamente após verificar que tudo funcionou.</p>';
-echo '<p>Próximo passo: <code>php artisan filament:user</code> para criar o primeiro admin.</p>';
+echo '<h2 style="color:#0f0">✓ Setup concluído!</h2>';
+echo '<p style="color:#f80"><b>IMPORTANTE:</b> Delete este arquivo imediatamente.</p>';
+echo '<p>Próximo passo: criar o usuário admin no Filament.</p>';
 echo '</body></html>';

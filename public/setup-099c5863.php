@@ -26,7 +26,7 @@ putenv("COMPOSER_HOME=$home/.composer");
 function run(string $label, string $cmd): int
 {
     echo "<h3 style='color:#ff0'>▶ $label</h3>";
-    echo "<pre style='background:#111;color:#0f0;padding:12px;white-space:pre-wrap'>$ $cmd\n\n";
+    echo "<pre style='background:#111;color:#0f0;padding:12px;white-space:pre-wrap;height:220px;overflow-y:auto'>$ $cmd\n\n";
     ob_flush(); flush();
 
     $handle = popen($cmd . ' 2>&1', 'r');

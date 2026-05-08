@@ -89,9 +89,21 @@ class XbzClient
         return match (true) {
             str_contains($text, 'caderno') => 'Cadernos',
             str_contains($text, 'caneta') => 'Canetas',
+            str_contains($text, 'caneca') => 'Canecas',
+            str_contains($text, 'copo') => 'Copos',
             str_contains($text, 'garrafa'), str_contains($text, 'squeeze') => 'Garrafas',
+            str_contains($text, 'mochila') => 'Mochilas',
+            str_contains($text, 'ecobag'), str_contains($text, 'sacola') => 'Ecobags',
+            str_contains($text, 'bolsa termica'), str_contains($text, 'termica') => 'Bolsas Térmicas',
+            str_contains($text, 'kit vinho'), str_contains($text, 'vinho') => 'Kits Vinho',
             str_contains($text, 'kit churrasco'), str_contains($text, 'churrasco') => 'Kits Churrasco',
             str_contains($text, 'kit queijo'), str_contains($text, 'queijo') => 'Kits Queijo',
+            str_contains($text, 'chaveiro') => 'Chaveiros',
+            str_contains($text, 'caixa de som'), str_contains($text, 'speaker') => 'Caixas de Som',
+            str_contains($text, 'agenda') => 'Agendas',
+            str_contains($text, 'bloquinho'), str_contains($text, 'bloco de notas'), str_contains($text, 'bloco') => 'Bloquinhos',
+            str_contains($text, 'moleskine') => 'Moleskines',
+            str_contains($text, 'pasta') => 'Pastas',
             default => null,
         };
     }

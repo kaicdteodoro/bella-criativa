@@ -129,6 +129,26 @@ if ($step === 'diag') {
         : "manifest.json: ✗ NAO EXISTE ($manifestPath)\n";
     echo "</pre>";
 
+    echo "<h3 style='color:#ff0'>Imagens públicas</h3><pre style='$pre'>";
+    $images = [
+        'public/images/home/home-hero.webp',
+        'public/images/home/home-hero-sm.webp',
+        'public/images/home/linhas-01-kits-corporativos.webp',
+        'public/images/home/linhas-02-brindes-criativos.webp',
+        'public/images/home/linhas-03-linha-executiva.webp',
+        'public/images/home/linhas-04-presentes-gourmet.webp',
+    ];
+    foreach ($images as $img) {
+        $path = "$root/$img";
+        if (file_exists($path)) {
+            $kb = round(filesize($path) / 1024, 1);
+            echo "$img → ✓ {$kb}KB\n";
+        } else {
+            echo "$img → ✗ NAO EXISTE\n";
+        }
+    }
+    echo "</pre>";
+
     echo "<h3 style='color:#ff0'>Credenciais de integrações</h3><pre style='$pre'>";
     $envValues = readEnvFile("$root/.env");
     foreach ([

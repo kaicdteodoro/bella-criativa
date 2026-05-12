@@ -118,6 +118,11 @@ body {
   width: 100vw;
 }
 
+/* Alinha o padding esquerdo com o container principal (max-w-7xl px-6) */
+.pb-hero-text-pad {
+  padding-left: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
+}
+
 .pb-skip-link {
   position: absolute;
   left: 1rem;

@@ -3,24 +3,48 @@
 @section('content')
 
 {{-- ─── HERO ──────────────────────────────────────────────────────────────── --}}
-<section class="border-b border-[var(--color-border)] pb-14 pt-12 lg:pt-20">
-    <p class="pb-eyebrow mb-8">Produtos personalizados desde 2014</p>
-    <h1 class="text-[3.75rem] leading-[0.95] tracking-tight lg:text-[6rem] xl:text-[7.5rem]">
-        {!! nl2br(e($page?->sections?->where('type','hero')->first()?->heading ?? "Cada detalhe,\ndo seu jeito.")) !!}
-    </h1>
-    <div class="mt-8 grid gap-6 border-t border-[var(--color-border)] pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
-        <p class="max-w-lg text-lg leading-8 text-[var(--color-text-secondary)]">
-            {{ $page?->sections?->where('type','hero')->first()?->content['text']
-                ?? 'Brindes, kits e produtos personalizados para empresas que valorizam acabamento, atendimento direto e opções sem quantidade mínima em linhas selecionadas.' }}
-        </p>
-        <div class="flex flex-wrap gap-4">
-            <a href="{{ route('products.index') }}" class="pb-btn-primary pb-focus-ring inline-flex px-7 py-4 text-sm uppercase tracking-[0.18em]">
-                Ver catálogo
-            </a>
-            <a href="{{ route('about') }}" class="pb-focus-ring inline-flex items-center gap-2 border border-[var(--color-border)] px-7 py-4 text-sm uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]">
-                Conhecer a Bella
-            </a>
+<section class="pb-full-bleed -mt-10 overflow-hidden border-b border-[var(--color-border)]">
+    <div class="flex min-h-[520px] items-stretch lg:min-h-[620px]">
+
+        {{-- Texto: padding esquerdo alinhado com o container do site --}}
+        <div class="pb-hero-text-pad flex flex-1 flex-col justify-center py-14 pr-8 lg:py-20 lg:pr-16 xl:pr-24">
+            <p class="pb-eyebrow mb-6">Brindes corporativos personalizados desde 2014</p>
+            <h1 class="text-4xl leading-[1.1] tracking-tight lg:text-5xl xl:text-6xl">
+                {!! nl2br(e($page?->sections?->where('type','hero')->first()?->heading ?? "Brindes que ficam.\nNão que vão pra gaveta.")) !!}
+            </h1>
+            <div class="mt-8 grid gap-6 border-t border-[var(--color-border)] pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
+                <p class="max-w-md text-base leading-7 text-[var(--color-text-secondary)]">
+                    {{ $page?->sections?->where('type','hero')->first()?->content['text']
+                        ?? 'Kits, produtos e brindes com a identidade da sua empresa. Você fala com quem executa — direto, sem fila.' }}
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="{{ route('products.index') }}" class="pb-btn-primary pb-focus-ring inline-flex px-7 py-4 text-sm uppercase tracking-[0.18em]">
+                        Ver catálogo
+                    </a>
+                    <a href="{{ route('about') }}" class="pb-focus-ring inline-flex items-center gap-2 border border-[var(--color-border)] px-7 py-4 text-sm uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:border-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]">
+                        Conhecer a Bella
+                    </a>
+                </div>
+            </div>
         </div>
+
+        {{-- Imagem: sangra até a borda direita do viewport --}}
+        <div class="relative hidden w-[42%] shrink-0 overflow-hidden lg:block xl:w-[46%]">
+            {{-- Fade suave na borda esquerda (transição entre texto e foto) --}}
+            <div class="pointer-events-none absolute inset-y-0 left-0 z-10 w-28 bg-gradient-to-r from-[var(--color-bg)] to-transparent"></div>
+            <picture>
+                <source srcset="/images/home/home-hero.webp" type="image/webp">
+                <img
+                    src="/images/home/home-hero.webp"
+                    alt="Kit personalizado com brinde corporativo — Bella Criativa"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="sync"
+                    class="h-full w-full object-cover object-center"
+                >
+            </picture>
+        </div>
+
     </div>
 </section>
 
@@ -45,6 +69,69 @@
         <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{{ $stat['label'] }}</p>
     </div>
     @endforeach
+</section>
+
+{{-- ─── PORTFÓLIO / LINHAS ──────────────────────────────────────────────────── --}}
+<section class="py-12 border-t border-[var(--color-border)]">
+    <div class="mb-8 flex items-end justify-between gap-6">
+        <div>
+            <p class="pb-eyebrow mb-2">Portfólio</p>
+            <h2 class="text-3xl leading-tight">Personalizado do seu jeito.</h2>
+        </div>
+        <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
+            Ver catálogo →
+        </a>
+    </div>
+
+    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2">
+        @foreach ([
+            [
+                'img'   => '/images/home/linhas-01-kits-corporativos.webp',
+                'title' => 'Kits corporativos',
+                'desc'  => 'Garrafa, brinde, kit completo com a marca da sua empresa.',
+                'alt'   => 'Kit corporativo personalizado com garrafa térmica, notebook e fone — Bella Criativa',
+            ],
+            [
+                'img'   => '/images/home/linhas-02-brindes-criativos.webp',
+                'title' => 'Brindes criativos',
+                'desc'  => 'Sacolas, livros e peças únicas para quem quer ser lembrado.',
+                'alt'   => 'Kit brinde criativo com sacola de tela e livro de colorir personalizado — Bella Criativa',
+            ],
+            [
+                'img'   => '/images/home/linhas-03-linha-executiva.webp',
+                'title' => 'Linha executiva',
+                'desc'  => 'Caderno, caneta, caixa premium. Acabamento que comunica valor.',
+                'alt'   => 'Kit executivo personalizado com caderno de couro e caneta — Bella Criativa',
+            ],
+            [
+                'img'   => '/images/home/linhas-04-presentes-gourmet.webp',
+                'title' => 'Presentes gourmet',
+                'desc'  => 'Para o cliente que merece mais do que uma caneta com logo.',
+                'alt'   => 'Kit presente premium gourmet com whisky e café especial — Bella Criativa',
+            ],
+        ] as $card)
+        <a
+            href="{{ route('products.index') }}"
+            class="pb-focus-ring group relative block overflow-hidden bg-[var(--color-bg-soft)]"
+        >
+            <div class="aspect-[4/3]">
+                <img
+                    src="{{ $card['img'] }}"
+                    alt="{{ $card['alt'] }}"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+                >
+            </div>
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent transition duration-300 group-hover:from-black/80"></div>
+            <div class="absolute inset-x-0 bottom-0 p-6 lg:p-8">
+                <p class="mb-2 text-[10px] uppercase tracking-[0.22em] text-white/50">Portfólio</p>
+                <p class="text-lg font-semibold leading-snug text-white">{{ $card['title'] }}</p>
+                <p class="mt-1.5 max-w-xs text-sm leading-5 text-white/70">{{ $card['desc'] }}</p>
+            </div>
+        </a>
+        @endforeach
+    </div>
 </section>
 
 {{-- ─── CATEGORIAS ─────────────────────────────────────────────────────────── --}}

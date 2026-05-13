@@ -60,10 +60,10 @@ docker compose exec app php artisan media:audit
 Documentacao principal:
 
 - `docs/07-deployment.md` - deploy manual no cPanel
-- `docs/14-deploy-automatico-cpanel.md` - deploy automatico via GitHub Actions
+- `docs/14-deploy-manual-cpanel.md` - runbook de deploy manual pelo terminal do cPanel
 - `docs/15-prod-go-live-backlog.md` - backlog operacional para go-live
 
-Workflow de deploy automatico:
+Workflow de deploy emergencial/manual:
 
 - `.github/workflows/deploy-production.yml`
 

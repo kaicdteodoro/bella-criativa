@@ -10,6 +10,7 @@ BRANCH="${DEPLOY_BRANCH:-main}"
 PHP_BIN="${PHP_BIN:-php}"
 COMPOSER_BIN="${COMPOSER_BIN:-composer}"
 ALLOW_BRANCH_MISMATCH="${DEPLOY_ALLOW_BRANCH_MISMATCH:-0}"
+CPANEL_GIT_MANAGER="${CPANEL_GIT_MANAGER:-0}"
 
 maintenance_enabled=0
 
@@ -95,3 +96,14 @@ log "Bringing application online"
 maintenance_enabled=0
 
 log "Deploy finished"
+
+if [[ "$CPANEL_GIT_MANAGER" == "1" ]]; then
+  cat <<'EOF'
+
+Important:
+CPANEL_GIT_MANAGER=1 is enabled. If this repository is managed by cPanel
+Git Version Manager and the public site is only updated after the panel's
+Deploy/Upload action, open cPanel and run that action now.
+
+EOF
+fi

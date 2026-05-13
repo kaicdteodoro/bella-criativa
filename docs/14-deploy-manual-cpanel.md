@@ -100,6 +100,16 @@ php artisan filament:user
 
 ## Deploy de Atualização
 
+### Cenário A: pasta do Git é a própria aplicação servida
+
+Use este cenário quando o domínio aponta direto para:
+
+```text
+~/bella-criativa/public
+```
+
+Nesse caso, o script abaixo atualiza a própria aplicação em produção.
+
 Antes de deployar, faça o build local e suba o commit para a `main`:
 
 ```bash
@@ -128,6 +138,28 @@ O script:
 - reconstrói caches;
 - tira o site da manutenção;
 - se falhar depois da manutenção, tenta rodar `php artisan up`.
+
+### Cenário B: cPanel Git Version Manager com botão de Upload/Deploy
+
+Use este cenário quando você puxa o código no Git Version Manager, mas o site só muda depois de clicar em **Upload**, **Deploy** ou **Deploy HEAD Commit** no cPanel.
+
+Nesse modelo, o repositório gerenciado pelo cPanel não é necessariamente a pasta que o domínio serve. O `git pull` e o script atualizam/preparam o repositório, mas a publicação final ainda acontece pelo botão do cPanel.
+
+Fluxo seguro:
+
+```bash
+cd ~/bella-criativa
+CPANEL_GIT_MANAGER=1 bash scripts/deploy-production.sh
+```
+
+Depois, no cPanel:
+
+1. abra **Git Version Manager**;
+2. selecione o repositório da Bella Criativa;
+3. clique em **Upload**, **Deploy** ou **Deploy HEAD Commit**;
+4. valide a home e uma página de produto.
+
+Se esse for o fluxo definitivo da hospedagem, considere esse botão como a etapa final obrigatória do deploy. Sem ele, a branch pode estar atualizada no terminal, mas o site público continuar servindo a versão anterior.
 
 Versão manual equivalente, caso precise depurar passo a passo:
 

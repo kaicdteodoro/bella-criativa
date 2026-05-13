@@ -4,20 +4,56 @@
 
 {{-- ─── HERO ──────────────────────────────────────────────────────────────── --}}
 <section class="pb-full-bleed -mt-10 overflow-hidden border-b border-[var(--color-border)]">
-    <div class="flex min-h-[520px] items-stretch lg:min-h-[620px]">
+    <div class="flex flex-col items-stretch lg:min-h-[620px] lg:flex-row">
+
+        {{-- Mobile: entrada visual mais comercial, sem alterar o hero desktop aprovado --}}
+        <div class="pb-mobile-hero relative min-h-[calc(100svh-5.5rem)] overflow-hidden lg:hidden">
+            <picture>
+                <source srcset="/images/home/home-hero-sm.webp" media="(max-width: 640px)" type="image/webp">
+                <source srcset="/images/home/home-hero.webp" type="image/webp">
+                <img
+                    src="/images/home/home-hero-sm.webp"
+                    alt="Kit personalizado com brinde corporativo — Bella Criativa"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="sync"
+                    class="absolute inset-0 h-full w-full object-cover object-[58%_center]"
+                >
+            </picture>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/94 via-black/54 to-black/10"></div>
+            <div class="absolute inset-x-0 bottom-0 px-6 pb-8 pt-24">
+                <div class="max-w-[21rem]">
+                <p class="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/78">Brindes corporativos desde 2014</p>
+                <h1 class="text-[2.35rem] font-semibold leading-[1.02] tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.42)]">
+                    {!! nl2br(e($page?->sections?->where('type','hero')->first()?->heading ?? "Brindes que ficam.\nNão que vão pra gaveta.")) !!}
+                </h1>
+                <p class="mt-5 text-[0.95rem] leading-6 text-white/86 drop-shadow-[0_1px_10px_rgba(0,0,0,0.4)]">
+                    Kits e produtos personalizados com acabamento de presente, prontos para levar sua marca junto.
+                </p>
+                <div class="mt-7 flex flex-wrap gap-3">
+                    <a href="{{ route('products.index') }}" class="pb-focus-ring inline-flex bg-white px-5 py-3 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-primary)] shadow-[0_14px_34px_rgba(0,0,0,0.18)]">
+                        Ver catálogo
+                    </a>
+                    <a href="{{ route('contact') }}" class="pb-focus-ring inline-flex border border-white/45 bg-black/18 px-5 py-3 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+                        Orçar
+                    </a>
+                </div>
+                </div>
+            </div>
+        </div>
 
         {{-- Texto: padding esquerdo alinhado com o container do site --}}
-        <div class="pb-hero-text-pad flex flex-1 flex-col justify-center py-14 pr-8 lg:py-20 lg:pr-16 xl:pr-24">
+        <div class="pb-hero-text-pad hidden flex-1 flex-col justify-center py-14 pr-8 lg:flex lg:py-20 lg:pr-16 xl:pr-24">
             <p class="pb-eyebrow mb-6">Brindes corporativos personalizados desde 2014</p>
             <h1 class="text-4xl leading-[1.1] tracking-tight lg:text-5xl xl:text-6xl">
                 {!! nl2br(e($page?->sections?->where('type','hero')->first()?->heading ?? "Brindes que ficam.\nNão que vão pra gaveta.")) !!}
             </h1>
-            <div class="mt-8 grid gap-6 border-t border-[var(--color-border)] pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
-                <p class="max-w-md text-base leading-7 text-[var(--color-text-secondary)]">
+            <div class="mt-8 max-w-2xl border-t border-[var(--color-border)] pt-8">
+                <p class="text-pretty text-[1.05rem] leading-8 text-[var(--color-text-secondary)]">
                     {{ $page?->sections?->where('type','hero')->first()?->content['text']
                         ?? 'Kits, produtos e brindes com a identidade da sua empresa. Você fala com quem executa — direto, sem fila.' }}
                 </p>
-                <div class="flex flex-wrap gap-4">
+                <div class="mt-7 flex flex-wrap gap-4">
                     <a href="{{ route('products.index') }}" class="pb-btn-primary pb-focus-ring inline-flex px-7 py-4 text-sm uppercase tracking-[0.18em]">
                         Ver catálogo
                     </a>
@@ -49,7 +85,7 @@
 </section>
 
 {{-- ─── STATS ──────────────────────────────────────────────────────────────── --}}
-<section class="grid grid-cols-2 gap-px bg-[var(--color-border)] border border-[var(--color-border)] my-12 lg:grid-cols-4">
+<section class="pb-mobile-stats -mx-6 grid grid-cols-2 gap-px bg-[var(--color-border)] border-y border-[var(--color-border)] my-0 lg:mx-0 lg:my-12 lg:grid-cols-4 lg:border">
     @foreach ([
         ['value' => '10+', 'label' => 'anos no mercado', 'count' => 10, 'suffix' => '+'],
         ['value' => 'Brasil', 'label' => 'atendimento em todo o país'],
@@ -66,24 +102,24 @@
         @else
             <p class="text-3xl font-semibold text-[var(--color-accent)]">{{ $stat['value'] }}</p>
         @endif
-        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{{ $stat['label'] }}</p>
+        <p class="mt-1 text-sm leading-5 text-[var(--color-text-secondary)]">{{ $stat['label'] }}</p>
     </div>
     @endforeach
 </section>
 
 {{-- ─── PORTFÓLIO / LINHAS ──────────────────────────────────────────────────── --}}
-<section class="py-12 border-t border-[var(--color-border)]">
-    <div class="mb-8 flex items-end justify-between gap-6">
+<section class="-mx-6 bg-[var(--color-surface-warm-start)] px-6 py-10 lg:mx-0 lg:bg-transparent lg:px-0 lg:py-12 lg:border-t lg:border-[var(--color-border)]">
+    <div class="mb-6 flex items-end justify-between gap-6 lg:mb-8">
         <div>
             <p class="pb-eyebrow mb-2">Portfólio</p>
-            <h2 class="text-3xl leading-tight">Personalizado do seu jeito.</h2>
+            <h2 class="max-w-[16rem] text-3xl leading-tight lg:max-w-none">Personalizado do seu jeito.</h2>
         </div>
         <a href="{{ route('products.index') }}" class="hidden text-xs uppercase tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-accent)] sm:block">
             Ver catálogo →
         </a>
     </div>
 
-    <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2">
+    <div class="pb-mobile-portfolio -mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-px sm:overflow-visible sm:px-0 lg:bg-[var(--color-border)] lg:border lg:border-[var(--color-border)]">
         @foreach ([
             [
                 'img'   => '/images/home/linhas-01-kits-corporativos.webp',
@@ -112,9 +148,9 @@
         ] as $card)
         <a
             href="{{ route('products.index') }}"
-            class="pb-focus-ring group relative block overflow-hidden bg-[var(--color-bg-soft)]"
+            class="pb-focus-ring group relative block w-[82vw] shrink-0 snap-start overflow-hidden bg-[var(--color-bg-soft)] sm:w-auto"
         >
-            <div class="aspect-[4/3]">
+            <div class="aspect-[3/4] sm:aspect-[4/3]">
                 <img
                     src="{{ $card['img'] }}"
                     alt="{{ $card['alt'] }}"
@@ -124,10 +160,10 @@
                 >
             </div>
             <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent transition duration-300 group-hover:from-black/80"></div>
-            <div class="absolute inset-x-0 bottom-0 p-6 lg:p-8">
+            <div class="absolute inset-x-0 bottom-0 p-5 lg:p-8">
                 <p class="mb-2 text-[10px] uppercase tracking-[0.22em] text-white/50">Portfólio</p>
                 <p class="text-lg font-semibold leading-snug text-white">{{ $card['title'] }}</p>
-                <p class="mt-1.5 max-w-xs text-sm leading-5 text-white/70">{{ $card['desc'] }}</p>
+                <p class="mt-1.5 max-w-xs text-sm leading-5 text-white/70 line-clamp-2 lg:line-clamp-none">{{ $card['desc'] }}</p>
             </div>
         </a>
         @endforeach

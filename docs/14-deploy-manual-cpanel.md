@@ -110,7 +110,26 @@ git commit -m "Mensagem do ajuste"
 git push origin main
 ```
 
-No terminal do cPanel:
+No terminal do cPanel, rode o script:
+
+```bash
+cd ~/bella-criativa
+bash scripts/deploy-production.sh
+```
+
+O script:
+
+- confere se está na branch `main`;
+- bloqueia o deploy se houver arquivos versionados modificados em produção;
+- usa `git pull --ff-only`;
+- coloca o site em manutenção;
+- instala dependências PHP;
+- roda migrations;
+- reconstrói caches;
+- tira o site da manutenção;
+- se falhar depois da manutenção, tenta rodar `php artisan up`.
+
+Versão manual equivalente, caso precise depurar passo a passo:
 
 ```bash
 cd ~/bella-criativa

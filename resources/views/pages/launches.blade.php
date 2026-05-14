@@ -23,9 +23,9 @@
 <section class="py-12">
     @if($products->isNotEmpty())
         <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            @foreach ($products as $product)
+            @foreach ($products as $item)
                 <div class="bg-[var(--color-bg)]">
-                    <x-product-card :product="$product" />
+                    <x-product-card :product="$item" />
                 </div>
             @endforeach
         </div>

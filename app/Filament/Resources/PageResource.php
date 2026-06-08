@@ -139,8 +139,9 @@ class PageResource extends Resource
                 ->visible(fn (Get $get): bool => in_array((string) $get('type'), ['hero', 'cta'], true)),
             TextInput::make('content.primary_url')
                 ->label('CTA primario - URL')
-                ->helperText('Use URL absoluta ou rota interna (ex.: /produtos).')
+                ->helperText('Use URL absoluta (https://...) ou rota interna (ex.: /produtos).')
                 ->maxLength(255)
+                ->rules(['nullable', 'regex:/^(https?:\/\/|\/)/'])
                 ->visible(fn (Get $get): bool => in_array((string) $get('type'), ['hero', 'cta'], true)),
             TextInput::make('content.secondary_label')
                 ->label('CTA secundario - texto')
@@ -148,8 +149,9 @@ class PageResource extends Resource
                 ->visible(fn (Get $get): bool => (string) $get('type') === 'hero'),
             TextInput::make('content.secondary_url')
                 ->label('CTA secundario - URL')
-                ->helperText('Use URL absoluta ou rota interna (ex.: /contato).')
+                ->helperText('Use URL absoluta (https://...) ou rota interna (ex.: /contato).')
                 ->maxLength(255)
+                ->rules(['nullable', 'regex:/^(https?:\/\/|\/)/'])
                 ->visible(fn (Get $get): bool => (string) $get('type') === 'hero'),
             Select::make('content.categories')
                 ->label('Categorias destacadas')

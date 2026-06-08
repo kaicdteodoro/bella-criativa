@@ -34,6 +34,13 @@
             'name' => 'Bella Criativa',
         ],
         'url' => route('products.show', $product->slug),
+        'offers' => [
+            '@type' => 'Offer',
+            'availability' => 'https://schema.org/InStock',
+            'priceCurrency' => 'BRL',
+            'url' => 'https://wa.me/'.config('catalog.whatsapp_number').'?text='.rawurlencode('Olá! Tenho interesse no produto '.$product->title.' ('.$product->sku.').'),
+            'seller' => ['@type' => 'Organization', 'name' => 'Bella Criativa'],
+        ],
     ];
     $breadcrumbLd = [
         '@context' => 'https://schema.org',
@@ -262,7 +269,7 @@
         {{-- Descrição técnica --}}
         <div class="p-8 pt-0 lg:p-10 lg:pt-0">
             <div class="prose max-w-none text-sm prose-p:text-[var(--color-text-secondary)] prose-p:leading-7 prose-headings:text-[var(--color-text-primary)]">
-                {!! $product->technical_description ?? '<p>Detalhes técnicos e variações disponíveis sob consulta.</p>' !!}
+                {!! \App\Support\HtmlSanitizer::clean($product->technical_description) ?: '<p>Detalhes técnicos e variações disponíveis sob consulta.</p>' !!}
             </div>
         </div>
 

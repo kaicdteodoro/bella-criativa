@@ -61,8 +61,12 @@ class CatalogController extends Controller
 
         $coverProductsByCategoryId = Product::published()
             ->whereHas('categories', fn ($query) => $query->whereIn('categories.id', $slideCategoryIds))
-            ->with(['media', 'categories'])
+            ->with([
+                'media:id,product_id,file,thumb_file,order',
+                'categories:id,name,slug',
+            ])
             ->latest('id')
+            ->limit(50)
             ->get()
             ->reduce(function (\Illuminate\Support\Collection $carry, Product $product) use ($slideCategoryIds) {
                 $matchedCategoryId = $product->categories

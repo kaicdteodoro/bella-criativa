@@ -11,15 +11,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
-Route::get('/', [CatalogController::class, 'home'])->name('home');
-Route::get('/sobre', [PageController::class, 'about'])->name('about');
-Route::get('/contato', [PageController::class, 'contact'])->name('contact');
-Route::get('/lancamentos', [LandingController::class, 'launches'])->name('launches');
-Route::get('/linha-premium', [LandingController::class, 'premium'])->name('premium');
-Route::get('/produtos', [ProductController::class, 'index'])->name('products.index');
-Route::get('/produtos/{slug}', [ProductController::class, 'show'])->name('products.show');
-Route::get('/categorias/{slug}', [CategoryController::class, 'show'])->name('categories.show');
-Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::middleware('throttle:120,1')->group(function () {
+    Route::get('/', [CatalogController::class, 'home'])->name('home');
+    Route::get('/sobre', [PageController::class, 'about'])->name('about');
+    Route::get('/contato', [PageController::class, 'contact'])->name('contact');
+    Route::get('/lancamentos', [LandingController::class, 'launches'])->name('launches');
+    Route::get('/linha-premium', [LandingController::class, 'premium'])->name('premium');
+    Route::get('/produtos', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/produtos/{slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/categorias/{slug}', [CategoryController::class, 'show'])->name('categories.show');
+    Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+});
 
 Route::post('/csp-report', function (Request $request) {
     $payload = $request->input('csp-report', $request->all());

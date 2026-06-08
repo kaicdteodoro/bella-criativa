@@ -90,6 +90,10 @@ class UrlImageProcessor
 
     private function downloadImage(string $url): ?string
     {
+        if (! $this->isSafeUrl($url)) {
+            return null;
+        }
+
         $timeout = (int) config('catalog.import.timeout', 30);
         $maxAttempts = max(1, (int) config('catalog.import.max_attempts', 3));
 
@@ -109,6 +113,29 @@ class UrlImageProcessor
         }
 
         return null;
+    }
+
+    private function isSafeUrl(string $url): bool
+    {
+        $parsed = parse_url($url);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        $host   = strtolower($parsed['host'] ?? '');
+
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        $blocked = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+        if (in_array($host, $blocked, true)) {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) &&
+            ! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return false;
+        }
+
+        return true;
     }
 
     /** @return array{0:string,1:?string} */

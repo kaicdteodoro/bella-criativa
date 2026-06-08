@@ -6,6 +6,6 @@
     </div>
 
     <div class="prose max-w-none prose-p:text-[var(--color-text-secondary)] prose-p:leading-8 prose-p:tracking-[0.005em]">
-        {!! $section->content['text'] ?? '' !!}
+        {!! \App\Support\HtmlSanitizer::clean($section->content['text'] ?? '') !!}
     </div>
 </section>

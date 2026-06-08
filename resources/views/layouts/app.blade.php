@@ -5,10 +5,10 @@
         $siteName = 'Bella Criativa';
         $defaultDescription = 'Brindes, kits e produtos personalizados para empresas. Atendimento direto, catálogo atualizado e produção com acabamento profissional.';
         $defaultImage = asset('images/foto-perfil.png');
-        $canonical = url()->current();
-        if (request()->query()) {
-            $canonical .= '?'.http_build_query(request()->query());
-        }
+        // Filtered catalog pages get noindex — canonical points to the clean URL
+        $canonical = request()->routeIs('products.index') && request()->query()
+            ? url()->current()
+            : url()->full();
 
         $seoTitle = $title ?? $siteName;
         $seoDescription = $description ?? $defaultDescription;

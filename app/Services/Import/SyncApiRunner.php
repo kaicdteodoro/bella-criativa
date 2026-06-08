@@ -111,12 +111,24 @@ class SyncApiRunner
         $termMap = (array) config('catalog.term_map', []);
         $quality = (int) config('catalog.import.quality', 80);
         $dryRun = (bool) ($options['dry_run'] ?? false);
+        $resume = (bool) ($options['resume'] ?? false);
         $maxPublished = filled($options['max_published'] ?? null) ? (int) $options['max_published'] : null;
         $publishedCount = 0;
+
+        $existingSkus = $resume
+            ? \App\Models\Product::query()->pluck('sku')->flip()->all()
+            : [];
 
         foreach ($rows as $row) {
             if ($maxPublished !== null && $publishedCount >= $maxPublished) {
                 break;
+            }
+
+            if ($resume && array_key_exists($row->sku, $existingSkus)) {
+                $result = new ImportResult(sku: $row->sku, action: ImportAction::Skipped, imagesProcessed: 0);
+                $results->push($result);
+                ($options['on_result'] ?? null)?->__invoke($result);
+                continue;
             }
 
             try {

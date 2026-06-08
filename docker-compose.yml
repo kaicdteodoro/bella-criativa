@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: docker/local/php/Dockerfile
     ports:
-      - '8000:8000'
+      - '8001:8000'
     volumes:
       - ./:/app
     env_file:

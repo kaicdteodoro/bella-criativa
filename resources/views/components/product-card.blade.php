@@ -16,8 +16,11 @@
                 src="{{ $thumbUrl }}"
                 srcset="{{ $thumbUrl }} 400w, {{ $product->featured_image_url }} 1200w"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                alt="{{ $product->title }}"
+                alt="{{ $product->title }}{{ $categoryLine !== '' ? ' | ' . $categoryLine : '' }} — Bella Criativa"
+                width="400"
+                height="500"
                 loading="lazy"
+                decoding="async"
                 class="h-full w-full object-contain p-4 transition duration-500 group-hover:scale-[1.02]"
             >
         @else

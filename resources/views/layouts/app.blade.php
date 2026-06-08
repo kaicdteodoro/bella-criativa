@@ -36,6 +36,7 @@
             $seoDescription = $category->description
                 ? \Illuminate\Support\Str::limit(strip_tags($category->description), 160)
                 : $defaultDescription;
+            $seoImage = (isset($categoryOgImage) && $categoryOgImage) ? $categoryOgImage : $defaultImage;
         } elseif (isset($page)) {
             $seoTitle = $page->title === $siteName ? $siteName : "{$page->title} | {$siteName}";
             $seoDescription = $page->meta_description
@@ -80,6 +81,7 @@
     @php
         $viteManifestExists = file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot'));
     @endphp
+    @stack('head-preload')
     @if ($viteManifestExists)
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif

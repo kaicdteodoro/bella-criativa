@@ -1,6 +1,69 @@
 @extends('layouts.app')
 
+@push('head-preload')
+    <link rel="preload" as="image" href="/images/home/home-hero-sm.webp" media="(max-width: 640px)" fetchpriority="high">
+    <link rel="preload" as="image" href="/images/home/home-hero.webp" media="(min-width: 641px)" fetchpriority="high">
+@endpush
+
 @section('content')
+@php
+    $breadcrumbLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Início', 'item' => url('/')],
+        ],
+    ];
+
+    $faqLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => [
+            [
+                '@type' => 'Question',
+                'name' => 'Qual o pedido mínimo para brindes personalizados?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => 'O pedido mínimo varia por produto e técnica de personalização. Em linhas selecionadas, trabalhamos sem pedido mínimo. Entre em contato pelo WhatsApp para orientação sobre o seu projeto.',
+                ],
+            ],
+            [
+                '@type' => 'Question',
+                'name' => 'Vocês entregam brindes para todo o Brasil?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => 'Sim, a Bella Criativa atende empresas em todo o território nacional com entrega por transportadora.',
+                ],
+            ],
+            [
+                '@type' => 'Question',
+                'name' => 'Quais técnicas de personalização estão disponíveis?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => 'Trabalhamos com laser, DTF, silk, transfer e sublimação. Cada técnica é indicada para diferentes materiais — metal, madeira, tecido, cerâmica e mais.',
+                ],
+            ],
+            [
+                '@type' => 'Question',
+                'name' => 'Como solicitar um orçamento de brinde corporativo?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => 'Envie uma mensagem no WhatsApp com o produto desejado, a quantidade estimada e o logo da sua empresa. Respondemos rapidamente com valores e prazo de produção.',
+                ],
+            ],
+            [
+                '@type' => 'Question',
+                'name' => 'Vocês atendem empresas de qualquer porte?',
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => 'Sim. Atendemos desde pequenas empresas a grandes corporações. Temos opções para pedidos pontuais e contratos de fornecimento recorrente.',
+                ],
+            ],
+        ],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode($faqLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
 {{-- ─── HERO ──────────────────────────────────────────────────────────────── --}}
 <section class="pb-full-bleed -mt-10 overflow-hidden border-b border-[var(--color-border)]">
@@ -374,6 +437,50 @@
             <p class="text-lg font-semibold group-hover:text-white transition-colors">{{ $nome }}</p>
             <p class="mt-1 text-sm text-[var(--color-text-secondary)] group-hover:text-white/70 transition-colors">{{ $desc }}</p>
         </div>
+        @endforeach
+    </div>
+</section>
+
+{{-- ─── FAQ ─────────────────────────────────────────────────────────────────── --}}
+<section class="py-12 border-t border-[var(--color-border)]">
+    <div class="mb-8">
+        <p class="pb-eyebrow mb-2">Dúvidas frequentes</p>
+        <h2 class="text-3xl leading-tight">Perguntas de quem quer pedir certo</h2>
+    </div>
+    <div class="divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
+        @foreach ([
+            [
+                'q' => 'Qual o pedido mínimo para brindes personalizados?',
+                'a' => 'Varia por produto e técnica. Em linhas selecionadas, trabalhamos sem pedido mínimo. Para kits e impressão, entre em contato — orientamos conforme o seu projeto.',
+            ],
+            [
+                'q' => 'Vocês entregam para todo o Brasil?',
+                'a' => 'Sim. Atendemos empresas em todo o território nacional com entrega via transportadora.',
+            ],
+            [
+                'q' => 'Quais técnicas de personalização estão disponíveis?',
+                'a' => 'Laser, DTF, Silk, Transfer e Sublimação. Cada técnica é indicada para um tipo de material — metal, madeira, tecido, cerâmica e outros.',
+            ],
+            [
+                'q' => 'Como solicitar um orçamento?',
+                'a' => 'Pelo WhatsApp: produto desejado, quantidade estimada e logo da empresa. Respondemos com valor e prazo em até 1 dia útil.',
+            ],
+            [
+                'q' => 'Vocês atendem empresas de qualquer porte?',
+                'a' => 'Sim. De pequenas empresas a grandes corporações, com opções para pedidos pontuais ou fornecimento recorrente.',
+            ],
+        ] as $item)
+        <details class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-base font-medium text-[var(--color-text-primary)] transition hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">
+                <span>{{ $item['q'] }}</span>
+                <span class="shrink-0 transition-transform duration-300 group-open:rotate-45" aria-hidden="true">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+            </summary>
+            <p class="pb-5 text-sm leading-7 text-[var(--color-text-secondary)]">{{ $item['a'] }}</p>
+        </details>
         @endforeach
     </div>
 </section>

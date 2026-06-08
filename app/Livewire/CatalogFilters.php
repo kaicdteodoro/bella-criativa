@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -47,7 +48,11 @@ class CatalogFilters extends Component
 
     public function render(): View
     {
-        $categories = Category::query()->orderBy('name')->get();
+        $categories = Cache::remember(
+            'catalog.categories.all',
+            3600,
+            fn () => Category::query()->orderBy('name')->get()
+        );
 
         return view('livewire.catalog-filters', compact('categories'));
     }

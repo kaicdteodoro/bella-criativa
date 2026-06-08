@@ -2,6 +2,16 @@
 
 @section('content')
 @php
+    $breadcrumbLd = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Início', 'item' => url('/')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Catálogo', 'item' => route('products.index')],
+            ['@type' => 'ListItem', 'position' => 3, 'name' => $category->filterDisplayName(), 'item' => route('categories.show', $category->slug)],
+        ],
+    ];
+
     $collectionLd = [
         '@context' => 'https://schema.org',
         '@type' => 'CollectionPage',
@@ -25,6 +35,7 @@
             ->all(),
     ];
 @endphp
+<script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 <script type="application/ld+json">{!! json_encode($collectionLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @if (!empty($itemListLd['itemListElement']))
     <script type="application/ld+json">{!! json_encode($itemListLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>

@@ -111,8 +111,14 @@ class SyncApiRunner
         $termMap = (array) config('catalog.term_map', []);
         $quality = (int) config('catalog.import.quality', 80);
         $dryRun = (bool) ($options['dry_run'] ?? false);
+        $maxPublished = filled($options['max_published'] ?? null) ? (int) $options['max_published'] : null;
+        $publishedCount = 0;
 
         foreach ($rows as $row) {
+            if ($maxPublished !== null && $publishedCount >= $maxPublished) {
+                break;
+            }
+
             try {
                 $media = $this->processor->process($row->sku, $row->imageUrls, $quality);
 
@@ -136,6 +142,10 @@ class SyncApiRunner
                     imagesProcessed: 0,
                     reason: $exception->getMessage(),
                 );
+            }
+
+            if ($result->published) {
+                $publishedCount++;
             }
 
             $results->push($result);

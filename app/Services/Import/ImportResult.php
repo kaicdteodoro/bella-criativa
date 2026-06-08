@@ -13,6 +13,7 @@ readonly class ImportResult
         public int $imagesProcessed,
         public array $warnings = [],
         public ?string $reason = null,
+        public bool $published = false,
     ) {
     }
 }

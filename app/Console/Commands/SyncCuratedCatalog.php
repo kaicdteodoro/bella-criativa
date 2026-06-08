@@ -41,13 +41,13 @@ class SyncCuratedCatalog extends Command
 
             try {
                 $batch = $runner->run($source, [
-                    'dry_run'      => $dryRun,
-                    'resume'       => $resume,
-                    'limit'        => $quota,
-                    'search_terms' => $this->presetsFor($categoria),
-                    'initiated_via'=> 'command',
-                    'record_history' => false,
-                    'on_result'    => function (ImportResult $result): void {
+                    'dry_run'       => $dryRun,
+                    'resume'        => $resume,
+                    'max_published' => $quota,
+                    'search_terms'  => $this->presetsFor($categoria),
+                    'initiated_via' => 'command',
+                    'record_history'=> false,
+                    'on_result'     => function (ImportResult $result): void {
                         $icon = match ($result->action) {
                             ImportAction::Failed  => '<fg=red>✗</>',
                             ImportAction::Skipped => '<fg=yellow>–</>',

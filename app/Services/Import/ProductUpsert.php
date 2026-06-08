@@ -102,6 +102,7 @@ class ProductUpsert
             action: $action,
             imagesProcessed: count($media->gallery),
             warnings: $curated->qualityNotes,
+            published: $product->status === 'published',
         );
     }
 

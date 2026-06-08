@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Product;
 use App\Services\Import\ImportAction;
 use App\Services\Import\ImportResult;
 use App\Services\Import\SyncApiRunner;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Throwable;
 
 class SyncCuratedCatalog extends Command
@@ -13,7 +15,8 @@ class SyncCuratedCatalog extends Command
     protected $signature = 'catalog:sync-curated
         {--source=xbz : Fornecedor (xbz, asia)}
         {--dry-run : Valida sem escrever no banco}
-        {--resume : Pula SKUs que já existem no banco}';
+        {--resume : Pula SKUs que já existem no banco}
+        {--only= : Roda apenas a categoria especificada (ex: ecobags)}';
 
     protected $description = 'Importa o catálogo curado da Bella por categoria, respeitando cotas definidas em config/catalog.php.';
 
@@ -35,15 +38,38 @@ class SyncCuratedCatalog extends Command
 
         $totals = ['created' => 0, 'updated' => 0, 'failed' => 0];
 
+        $only = $this->option('only');
+        if ($only !== null) {
+            $plan = array_filter($plan, fn ($k) => $k === $only, ARRAY_FILTER_USE_KEY);
+            if ($plan === []) {
+                $this->error("Categoria '{$only}' não encontrada em curated_plan.");
+                return self::FAILURE;
+            }
+        }
+
         foreach ($plan as $categoria => $quota) {
             $this->newLine();
             $this->line("▸ <fg=cyan>{$categoria}</> (cota: {$quota})");
+
+            $maxPublished = $quota;
+
+            if ($resume) {
+                $existing = $this->alreadyPublishedFor($categoria);
+                $maxPublished = max(0, $quota - $existing);
+
+                if ($maxPublished === 0) {
+                    $this->line("  → cota já batida ({$existing}/{$quota}), pulando.");
+                    continue;
+                }
+
+                $this->line("  → já publicados: {$existing} | slots disponíveis: {$maxPublished}");
+            }
 
             try {
                 $batch = $runner->run($source, [
                     'dry_run'       => $dryRun,
                     'resume'        => $resume,
-                    'max_published' => $quota,
+                    'max_published' => $maxPublished,
                     'search_terms'  => $this->presetsFor($categoria),
                     'initiated_via' => 'command',
                     'record_history'=> false,
@@ -85,6 +111,21 @@ class SyncCuratedCatalog extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function alreadyPublishedFor(string $categoria): int
+    {
+        $termMap   = (array) config('catalog.term_map', []);
+        $canonicals = (array) config('catalog.category_canonical_names', []);
+
+        $candidateName = ucwords(str_replace('-', ' ', $categoria));
+        $canonical     = $canonicals[mb_strtolower($candidateName)] ?? $candidateName;
+        $slug          = $termMap[$canonical] ?? Str::slug($canonical);
+
+        return Product::query()
+            ->where('status', 'published')
+            ->whereHas('categories', fn ($q) => $q->where('slug', $slug))
+            ->count();
     }
 
     /** @return string[] */

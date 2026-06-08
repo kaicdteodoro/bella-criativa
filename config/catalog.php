@@ -106,4 +106,29 @@ return [
         '#FF69B4' => 'Rosa',
     ],
     'whatsapp_number' => env('WHATSAPP_NUMBER'),
+
+    /*
+    | Plano de curadoria: categorias que entram no catálogo da Bella e sua cota máxima.
+    | Usado pelo comando catalog:sync-curated. Ajuste as cotas conforme o espaço disponível.
+    | Total padrão: ~415 produtos (~500 MB em disco).
+    */
+    'curated_plan' => [
+        'canetas'        => 60,
+        'cadernos'       => 40,
+        'garrafas'       => 35,
+        'canecas'        => 30,
+        'mochilas'       => 25,
+        'ecobags'        => 25,
+        'agendas'        => 20,
+        'bloquinhos'     => 20,
+        'kits-churrasco' => 20,
+        'kits-vinho'     => 20,
+        'chaveiros'      => 20,
+        'copos'          => 15,
+        'bolsas-termicas'=> 15,
+        'kits-queijo'    => 15,
+        'caixas-de-som'  => 15,
+        'moleskine'      => 10,
+        'pastas'         => 10,
+    ],
 ];

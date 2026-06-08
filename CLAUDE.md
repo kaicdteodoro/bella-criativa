@@ -24,6 +24,7 @@ Site institucional + catálogo público de produtos da Bella Criativa. Migraçã
 11. `docs/11-pipeline-produtos.md` — pipeline de enriquecimento do catálogo
 12. `docs/12-institutional-content.md` — copy e conteúdo das páginas institucionais
 13. `docs/13-media-pipeline.md` — diagnóstico e proposta do pipeline de imagens
+14. `docs/output-h-manual-operador.md` — manual do operador para a cliente (linguagem não-técnica)
 
 ## Stack atual do projeto
 
@@ -70,3 +71,7 @@ Site institucional + catálogo público de produtos da Bella Criativa. Migraçã
 ## Regra prática para novos agentes
 
 Antes de começar, identifique em qual épico do `docs/09-backlog.md` a tarefa cai. Se a tarefa não couber em um épico existente, trate isso como sinal de escopo novo e documente a decisão antes de implementar.
+
+## Regra sobre o manual do operador
+
+`docs/output-h-manual-operador.md` é escrito para a cliente não-técnica, não para agentes. Qualquer mudança no painel Filament, nos fluxos de importação ou nas operações do catálogo que altere o comportamento visível ao operador deve refletir nesse arquivo. Mantenha-o em linguagem simples e sem jargão técnico.

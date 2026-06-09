@@ -58,6 +58,9 @@ return [
             'bloquinhos' => ['bloquinho', 'bloco de notas', 'bloco'],
             'moleskine' => ['moleskine'],
             'pastas' => ['pasta', 'pastas'],
+            'guarda-chuvas' => ['guarda-chuva', 'guarda chuva', 'sombrinha'],
+            'necessaires' => ['necessaire', 'estojo', 'porta-cosmeticos', 'porta cosmeticos'],
+            'bones' => ['bone', 'boné', 'bones', 'bonés', 'bone brinde', 'chapeu'],
         ],
     ],
     'term_map' => [
@@ -130,5 +133,8 @@ return [
         'caixas-de-som'  => 20,
         'moleskine'      => 15,
         'pastas'         => 15,
+        'guarda-chuvas'  => 15,
+        'necessaires'    => 10,
+        'bones'          => 10,
     ],
 ];

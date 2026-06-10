@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Services\Import;
 
-use App\Services\Import\Exceptions\ImageProcessingException;
+use App\Services\Import\MediaData;
 use App\Services\Import\UrlImageProcessor;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -25,8 +25,8 @@ class UrlImageProcessorTest extends TestCase
 
         $processor = new UrlImageProcessor();
         $media = $processor->process('SKU-1501', [
-            'https://cdn.example.com/1.png##000000',
-            'https://cdn.example.com/2.png##0057FF',
+            'https://cdn.example.com/1.png|||#000000',
+            'https://cdn.example.com/2.png|||#0057FF',
         ], 80);
 
         $this->assertSame('media/SKU-1501/SKU-1501-01.webp', $media->featured);
@@ -40,16 +40,27 @@ class UrlImageProcessorTest extends TestCase
         Storage::disk('public')->assertExists($media->ogImage);
     }
 
-    public function test_it_throws_when_no_image_can_be_processed(): void
+    public function test_it_returns_empty_media_when_no_image_can_be_downloaded(): void
     {
         Http::fake([
             '*' => Http::response('', 500),
         ]);
 
-        $this->expectException(ImageProcessingException::class);
-        $this->expectExceptionMessage('Nenhuma imagem pôde ser baixada ou processada');
+        $media = (new UrlImageProcessor())->process('SKU-1502', ['https://cdn.example.com/fail.png']);
 
-        (new UrlImageProcessor())->process('SKU-1502', ['https://cdn.example.com/fail.png']);
+        $this->assertInstanceOf(MediaData::class, $media);
+        $this->assertSame('', $media->featured);
+        $this->assertSame('', $media->ogImage);
+        $this->assertCount(0, $media->gallery);
+    }
+
+    public function test_it_returns_empty_media_when_image_urls_is_empty(): void
+    {
+        $media = (new UrlImageProcessor())->process('SKU-1503', []);
+
+        $this->assertInstanceOf(MediaData::class, $media);
+        $this->assertSame('', $media->featured);
+        $this->assertCount(0, $media->gallery);
     }
 
     private function pngFixture(string $hex): string

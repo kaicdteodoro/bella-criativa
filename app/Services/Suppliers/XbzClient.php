@@ -160,7 +160,7 @@ class XbzClient
             }
 
             $hint = $this->extractColorHint((string) ($variant['codigoComposto'] ?? ''));
-            $urlWithHint = $hint ? "{$imageLink}#{$hint}" : $imageLink;
+            $urlWithHint = $hint ? "{$imageLink}|||{$hint}" : $imageLink;
             $urls[] = $urlWithHint;
         }
 

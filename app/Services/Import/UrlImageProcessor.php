@@ -3,7 +3,6 @@
 namespace App\Services\Import;
 
 use App\Services\Import\Concerns\NormalizesSkuPath;
-use App\Services\Import\Exceptions\ImageProcessingException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -23,7 +22,7 @@ class UrlImageProcessor
     public function process(string $sku, array $imageUrls, int $quality = 80): MediaData
     {
         if ($imageUrls === []) {
-            throw new ImageProcessingException("Nenhuma URL de imagem disponível para o SKU {$sku}.");
+            return new MediaData(featured: '', ogImage: '', gallery: []);
         }
 
         $manager = new ImageManager(new Driver());
@@ -71,9 +70,7 @@ class UrlImageProcessor
         }
 
         if ($gallery === []) {
-            throw new ImageProcessingException(
-                "Nenhuma imagem pôde ser baixada ou processada para o SKU {$sku}."
-            );
+            return new MediaData(featured: '', ogImage: '', gallery: []);
         }
 
         $ogRelativePath = sprintf('media/%s/%s-og.webp', $safeSku, $safeSku);
@@ -141,7 +138,7 @@ class UrlImageProcessor
     /** @return array{0:string,1:?string} */
     private function splitColorHint(string $urlWithHint): array
     {
-        $parts = explode('#', $urlWithHint, 2);
+        $parts = explode('|||', $urlWithHint, 2);
         $url = $parts[0];
         $hint = $parts[1] ?? null;
 

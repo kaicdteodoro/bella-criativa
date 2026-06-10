@@ -64,6 +64,10 @@ return [
             'mouse-pad' => ['mouse pad', 'mousepad', 'pad mouse'],
             'porta-cracha' => ['porta cracha', 'porta crachá', 'lanyard', 'cordao cracha', 'cracha'],
             'sacochila' => ['sacochila', 'mochila cordao', 'mochila de cordão', 'mochila saco'],
+            'fones-de-ouvido' => ['fone de ouvido', 'fone bluetooth', 'headphone', 'earphone', 'earbuds', 'fone'],
+            'power-bank' => ['power bank', 'powerbank', 'carregador portatil', 'bateria portatil'],
+            'squeezes' => ['squeeze', 'squeeze esportivo'],
+            'almofadas' => ['almofada', 'almofadao'],
         ],
     ],
     'term_map' => [
@@ -142,5 +146,9 @@ return [
         'mouse-pad'      => 12,
         'porta-cracha'   => 11,
         'sacochila'      => 12,
+        'fones-de-ouvido'=> 20,
+        'power-bank'     => 15,
+        'squeezes'       => 20,
+        'almofadas'      => 15,
     ],
 ];

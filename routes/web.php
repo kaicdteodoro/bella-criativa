@@ -23,6 +23,18 @@ Route::middleware('throttle:120,1')->group(function () {
     Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 });
 
+Route::get('/llms.txt', function () {
+    $path = public_path('llms.txt');
+
+    abort_unless(file_exists($path), 404);
+
+    return response(file_get_contents($path), 200, [
+        'Content-Type'  => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=86400',
+        'X-Robots-Tag'  => 'noindex',
+    ]);
+})->middleware('throttle:20,60')->name('llms');
+
 Route::post('/csp-report', function (Request $request) {
     $payload = $request->input('csp-report', $request->all());
 

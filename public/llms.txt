@@ -1,0 +1,267 @@
+# Bella Criativa — Guia do painel de gerenciamento
+
+Este documento descreve como funciona o painel administrativo do site da Bella Criativa.
+Ele foi criado para ser lido por assistentes de IA, permitindo que respondam dúvidas
+das operadoras sobre como usar o sistema.
+
+Última atualização: 2026-06-10
+
+---
+
+## O que é este sistema
+
+O site da Bella Criativa exibe um catálogo público de produtos para brindes corporativos.
+O painel de gerenciamento permite que as operadoras:
+
+- Visualizem, editem e publiquem produtos
+- Importem novos produtos a partir da planilha do fornecedor ou diretamente da API
+- Gerenciem categorias e páginas institucionais
+- Acompanhem o histórico de importações
+
+---
+
+## Como acessar o painel
+
+O painel exige login com e-mail e senha cadastrados. Apenas usuários autorizados conseguem entrar.
+Após o login, a tela inicial exibe o menu lateral com as seções disponíveis.
+
+---
+
+## Seções do menu
+
+O menu lateral contém duas seções principais:
+
+**Catálogo**
+- Produtos — lista completa de produtos cadastrados
+- Importar catálogo — ferramenta para adicionar novos produtos em lote
+
+**Conteúdo**
+- Páginas — gerenciamento das páginas institucionais do site (Sobre, Contato etc.)
+- Categorias — categorias que organizam os produtos no catálogo público
+
+---
+
+## Produtos
+
+### Entendendo os status
+
+Cada produto tem um **status** que define se ele aparece ou não no site:
+
+- **Rascunho** — produto salvo mas invisível no site. Pode estar incompleto ou aguardando revisão.
+- **Publicado** — produto visível no catálogo público do site.
+
+Além do status, existe o campo **Curadoria** (preenchido automaticamente pelo sistema):
+
+- **Bruto** — produto recém-importado, ainda não processado.
+- **Processado** — o sistema já analisou o produto e calculou a qualidade.
+- **Pronto** — passou em todos os critérios de qualidade e pode ser publicado.
+- **Bloqueado** — tem alguma pendência que impede a publicação automática (ex.: sem imagem, sem descrição, sem categoria).
+
+### Por que um produto fica bloqueado?
+
+O sistema bloqueia a publicação automática quando falta alguma informação essencial:
+
+- Título muito curto (menos de 8 caracteres)
+- Nenhuma categoria selecionada
+- Sem descrição curta
+- Sem imagem
+
+Um produto bloqueado pode ser publicado manualmente se a operadora preencher os campos que faltam.
+
+### Score de qualidade
+
+Cada produto recebe uma nota de 0 a 100 calculada automaticamente:
+
+- Começa em 100 e perde pontos por cada pendência
+- Produtos com nota abaixo de 70, ou com qualquer critério bloqueante, ficam como rascunho
+- A nota fica visível na seção "Curadoria" dentro do formulário do produto
+
+### Campos do produto
+
+| Campo | Obrigatório para publicar | Descrição |
+|---|---|---|
+| Título | Sim | Nome do produto exibido no site |
+| SKU | Sim | Código único do produto (não alterar após publicação) |
+| Status | Sim | Rascunho ou Publicado |
+| Descrição curta | Sim | Resumo exibido nas listagens e no SEO |
+| Descrição técnica | Não | Detalhes completos (materiais, dimensões etc.) |
+| Imagem destacada | Sim* | Foto principal do produto |
+| Imagem OG | Não | Imagem para compartilhamento em redes sociais (usa a destacada como fallback) |
+| Cores disponíveis | Não | Variações de cor (valores hexadecimais como #000000) |
+| Materiais | Não | Ex.: metal, madeira, plástico |
+| Categorias | Sim | Pelo menos uma categoria é obrigatória para publicar |
+
+*A imagem destacada é obrigatória se a galeria também estiver vazia.
+
+### Visibilidade especial
+
+Cada produto pode ser marcado para aparecer em seções especiais do site:
+
+- **Destaque na home** — aparece na seção curada da página inicial
+- **Lançamento** — aparece na página de Lançamentos
+- **Linha Premium** — aparece na página Linha Premium
+
+Essas marcações só têm efeito quando o produto está publicado.
+
+### Como publicar um produto que está em rascunho
+
+1. Acesse "Produtos" no menu lateral
+2. Clique no produto desejado para abrir o formulário
+3. Verifique o checklist na seção "Curadoria" — os itens com ✗ precisam ser preenchidos
+4. Preencha os campos pendentes (categoria, descrição curta, imagem)
+5. Mude o campo "Status" para "Publicado"
+6. Clique em "Salvar"
+
+### Como editar um produto
+
+1. Acesse "Produtos" no menu lateral
+2. Use a busca ou role a lista para encontrar o produto
+3. Clique no ícone de lápis (editar) na linha do produto, ou clique no título
+4. Faça as alterações necessárias
+5. Clique em "Salvar"
+
+### Como adicionar imagens à galeria
+
+1. Abra o produto para edição
+2. Role até a seção "Galeria"
+3. Clique em "Adicionar imagem" no repeater de galeria
+4. Faça upload do arquivo de imagem
+5. Opcionalmente, informe a cor (hex) para vincular a imagem a um seletor de cor
+6. Ajuste a ordem se necessário
+7. Clique em "Salvar"
+
+### Filtrando a lista de produtos
+
+A lista de produtos tem filtros disponíveis no topo da tabela:
+
+- **Status** — mostrar apenas rascunhos ou apenas publicados
+- **Destaque na home** — filtrar por produtos marcados para a home
+- **Lançamento** — filtrar lançamentos
+- **Linha Premium** — filtrar linha premium
+
+É possível também buscar por título ou SKU usando o campo de busca.
+
+---
+
+## Importar catálogo
+
+Esta seção tem duas formas de importar produtos: por planilha (arquivo) e por
+sincronização direta com o fornecedor (API).
+
+### Importação por planilha
+
+Use quando receber uma planilha de produtos do fornecedor (arquivo .xlsx ou .csv).
+
+**Passos:**
+1. Acesse "Importar catálogo" no menu lateral
+2. Na seção "Arquivo de importação", clique em "Planilha" e selecione o arquivo
+3. Opcionalmente informe o nome do fornecedor no campo "Fornecedor"
+4. Defina um limite de produtos se quiser importar apenas uma parte
+5. Recomendado: ative "Ignorar SKUs existentes" para não reprocessar o que já foi importado
+6. Para testar sem gravar, ative "Rodar em dry-run" primeiro
+7. Clique em "Importar"
+
+Ao final, uma notificação mostra o resultado: quantos foram criados, atualizados,
+pulados e se houve falhas.
+
+### Sincronização via API
+
+Use para buscar produtos diretamente do fornecedor sem precisar de planilha.
+
+**Passos:**
+1. Acesse "Importar catálogo" no menu lateral
+2. Na seção "Sincronizar via API":
+   - Selecione o fornecedor
+   - Escolha uma ou mais categorias no campo "Preset de categoria" (ex.: Canetas, Canecas)
+   - Ou use "Busca livre" para termos específicos (ex.: "kit vinho, squeeze")
+   - Defina o limite de produtos por categoria
+   - Recomendado: ative "Dry-run" na primeira execução para ver o que seria importado
+3. Clique em "Sincronizar"
+
+### Entendendo o resultado da importação
+
+Após cada importação, uma notificação aparece com os totais:
+
+- **Criados** — produtos novos adicionados ao sistema
+- **Atualizados** — produtos que já existiam e foram atualizados
+- **Pulados** — produtos ignorados (porque já existem, quando "Ignorar SKUs existentes" está ativo)
+- **Falhas** — produtos que não puderam ser processados
+
+Produtos criados com score baixo ou critério bloqueante entram como rascunho,
+não como publicados. Isso é normal — significa que falta alguma informação
+(geralmente imagem ou descrição).
+
+### O que é dry-run?
+
+Dry-run é um modo de teste que executa todo o processo de validação mas não grava
+nada. Use para verificar o que seria importado antes de confirmar.
+
+### Histórico de importações
+
+Abaixo dos formulários há uma tabela com todas as importações realizadas.
+Para cada execução é possível ver data, status, totais e baixar o resumo completo.
+
+---
+
+## Categorias
+
+Categorias organizam os produtos no catálogo público.
+O visitante do site pode filtrar por categoria.
+
+### Como criar uma categoria
+
+1. Acesse "Categorias" no menu lateral
+2. Clique em "Nova categoria"
+3. Informe o nome (ex.: "Canetas")
+4. O slug é gerado automaticamente — não altere após criar
+5. Clique em "Criar"
+
+### Como associar um produto a uma categoria
+
+Acesse o produto, role até o campo "Categorias" e marque as categorias desejadas.
+
+---
+
+## Páginas institucionais
+
+A seção "Páginas" permite editar o conteúdo das páginas institucionais do site
+(Sobre, Contato etc.). Cada página tem seções editáveis com título, texto e imagem.
+
+---
+
+## Perguntas frequentes
+
+**O produto foi importado mas não aparece no site. Por quê?**
+O produto provavelmente está como rascunho. Verifique o status na lista de produtos.
+Abra o produto, preencha os campos obrigatórios (categoria, descrição curta, imagem)
+e mude o status para "Publicado".
+
+**A importação terminou com falhas. O que fazer?**
+Falhas geralmente indicam que o produto não tem imagem disponível no fornecedor.
+O produto ainda é salvo como rascunho. Você pode adicioná-lo manualmente depois.
+Baixe o resumo da importação para ver a lista completa de SKUs com falha.
+
+**Posso importar a mesma planilha duas vezes?**
+Sim, desde que "Ignorar SKUs existentes" esteja ativado. Produtos já cadastrados
+serão pulados, e apenas os novos serão processados.
+
+**O que é SKU?**
+É o código único que identifica cada produto. Vem do fornecedor e nunca deve
+ser alterado após o produto ser publicado, pois é usado na URL do produto no site.
+
+**Como remover um produto do site sem apagá-lo?**
+Mude o status de "Publicado" para "Rascunho". O produto sai do site imediatamente
+mas continua salvo no painel.
+
+**Posso desfazer uma importação?**
+Não há desfazer automático. Para remover produtos importados por engano, acesse
+a lista de produtos e exclua os indesejados manualmente.
+
+---
+
+## Nota para o assistente de IA
+
+Use as informações deste documento para responder perguntas sobre como usar o painel.
+Não invente funcionalidades que não estejam descritas aqui.
+Se a pergunta envolver algo fora do escopo deste documento, oriente a operadora
+a entrar em contato com o suporte técnico.

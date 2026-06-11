@@ -42,23 +42,31 @@ class CatalogGrid extends Component
 
     public function render(): View
     {
-        $products = Product::published()
-            ->with(['categories', 'media'])
-            ->when($this->category, fn ($query) => $query->whereHas(
-                'categories',
-                fn ($categoryQuery) => $categoryQuery->where('slug', $this->category)
-            ))
-            ->when(trim($this->search) !== '', function ($query) {
-                $term = '%'.trim($this->search).'%';
-                $query->where(function ($inner) use ($term) {
-                    $inner->where('title', 'like', $term)
-                        ->orWhere('short_description', 'like', $term)
-                        ->orWhere('sku', 'like', $term);
-                });
-            })
-            ->latest('id')
-            ->limit($this->perPage)
-            ->get();
+        $search = mb_strtolower(trim($this->search));
+        $cacheKey = 'catalog.grid:' . ($this->category ?? '') . ':' . md5($search) . ':' . $this->perPage;
+
+        $products = Cache::remember($cacheKey, 60, function () use ($search) {
+            return Product::published()
+                ->select(['id', 'slug', 'title', 'featured_image', 'available_colors'])
+                ->with([
+                    'categories:id,slug,name',
+                    'media' => fn ($q) => $q->select(['id', 'product_id', 'file', 'thumb_file', 'order'])->orderBy('order'),
+                ])
+                ->when($this->category, fn ($query) => $query->whereHas(
+                    'categories',
+                    fn ($q) => $q->where('slug', $this->category)
+                ))
+                ->when($search !== '', function ($query) use ($search) {
+                    $term = '%' . $search . '%';
+                    $query->where(function ($inner) use ($term) {
+                        $inner->where('title', 'like', $term)
+                            ->orWhere('sku', 'like', $term);
+                    });
+                })
+                ->latest('id')
+                ->limit($this->perPage)
+                ->get();
+        });
 
         return view('livewire.catalog-grid', compact('products'));
     }

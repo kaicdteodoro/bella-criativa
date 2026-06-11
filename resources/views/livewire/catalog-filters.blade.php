@@ -4,7 +4,7 @@
     <div class="relative min-w-48 flex-1">
         <input
             type="text"
-            wire:model.live.debounce.350ms="search"
+            wire:model.live.debounce.500ms="search"
             placeholder="Buscar por nome ou SKU..."
             class="pb-focus-ring w-full border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]"
         >

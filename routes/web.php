@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
-Route::middleware('throttle:120,1')->group(function () {
+Route::middleware('throttle:600,1')->group(function () {
     Route::get('/', [CatalogController::class, 'home'])->name('home');
     Route::get('/sobre', [PageController::class, 'about'])->name('about');
     Route::get('/contato', [PageController::class, 'contact'])->name('contact');
@@ -55,5 +55,5 @@ Route::post('/csp-report', function (Request $request) {
     return response()->json(['ok' => true]);
 })
     ->withoutMiddleware([VerifyCsrfToken::class])
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:600,1')
     ->name('security.csp-report');

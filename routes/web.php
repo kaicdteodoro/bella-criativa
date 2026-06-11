@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
-Route::group([], function () {
+Route::middleware('throttle:600,1')->group(function () {
     Route::get('/', [CatalogController::class, 'home'])->name('home');
     Route::get('/sobre', [PageController::class, 'about'])->name('about');
     Route::get('/contato', [PageController::class, 'contact'])->name('contact');

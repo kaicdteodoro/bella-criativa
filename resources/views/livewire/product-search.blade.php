@@ -35,7 +35,7 @@
                 <input
                     x-ref="searchInput"
                     type="text"
-                    wire:model.live.debounce.500ms="query"
+                    wire:model.live.debounce.300ms="query"
                     placeholder="Buscar por nome ou SKU…"
                     class="w-full bg-transparent py-4 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:outline-none"
                     autocomplete="off"

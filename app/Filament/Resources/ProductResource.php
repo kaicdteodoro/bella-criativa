@@ -10,7 +10,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Illuminate\Database\Eloquent\Collection;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -290,39 +289,39 @@ class ProductResource extends Resource
                     BulkAction::make('mark_launch')
                         ->label('Marcar como Lançamento')
                         ->icon('heroicon-o-sparkles')
-                        ->action(fn (Collection $records) => $records->each->update(['is_launch' => true]))
+                        ->action(fn ($records) => $records->each->update(['is_launch' => true]))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('unmark_launch')
                         ->label('Remover de Lançamentos')
                         ->icon('heroicon-o-minus-circle')
                         ->color('gray')
-                        ->action(fn (Collection $records) => $records->each->update(['is_launch' => false]))
+                        ->action(fn ($records) => $records->each->update(['is_launch' => false]))
                         ->deselectRecordsAfterCompletion(),
                 ])->label('Lançamentos'),
                 BulkActionGroup::make([
                     BulkAction::make('mark_premium')
                         ->label('Marcar como Premium')
                         ->icon('heroicon-o-star')
-                        ->action(fn (Collection $records) => $records->each->update(['is_premium' => true]))
+                        ->action(fn ($records) => $records->each->update(['is_premium' => true]))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('unmark_premium')
                         ->label('Remover de Premium')
                         ->icon('heroicon-o-minus-circle')
                         ->color('gray')
-                        ->action(fn (Collection $records) => $records->each->update(['is_premium' => false]))
+                        ->action(fn ($records) => $records->each->update(['is_premium' => false]))
                         ->deselectRecordsAfterCompletion(),
                 ])->label('Premium'),
                 BulkActionGroup::make([
                     BulkAction::make('mark_featured')
                         ->label('Marcar como Destaque')
                         ->icon('heroicon-o-home')
-                        ->action(fn (Collection $records) => $records->each->update(['is_featured' => true]))
+                        ->action(fn ($records) => $records->each->update(['is_featured' => true]))
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('unmark_featured')
                         ->label('Remover do Destaque')
                         ->icon('heroicon-o-minus-circle')
                         ->color('gray')
-                        ->action(fn (Collection $records) => $records->each->update(['is_featured' => false]))
+                        ->action(fn ($records) => $records->each->update(['is_featured' => false]))
                         ->deselectRecordsAfterCompletion(),
                 ])->label('Home'),
             ])

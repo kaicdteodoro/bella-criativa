@@ -18,18 +18,14 @@ class AutoFlagProducts extends Command
         $dry = (bool) $this->option('dry-run');
 
         // Lançamentos: produtos criados nos últimos 60 dias ainda sem flag
-        $launches = Product::published()
+        $launchQuery = Product::published()
             ->where('is_launch', false)
-            ->where('created_at', '>=', now()->subDays(60))
-            ->get();
+            ->where('created_at', '>=', now()->subDays(60));
 
-        $this->info("Lançamentos recentes sem flag: {$launches->count()}");
+        $this->info("Lançamentos recentes sem flag: {$launchQuery->count()}");
 
         if (! $dry) {
-            Product::published()
-                ->where('is_launch', false)
-                ->where('created_at', '>=', now()->subDays(60))
-                ->update(['is_launch' => true]);
+            $launchQuery->update(['is_launch' => true]);
         }
 
         // Premium: varredura por palavra-chave em todos os publicados sem flag

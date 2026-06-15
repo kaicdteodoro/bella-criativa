@@ -412,9 +412,9 @@
     </div>
 
     <div class="grid gap-px bg-[var(--color-border)] border border-[var(--color-border)] sm:grid-cols-2 xl:grid-cols-4">
-        @foreach ($featuredProducts as $product)
+        @foreach ($featuredProducts as $featuredProduct)
             <div class="bg-[var(--color-bg)]">
-                <x-product-card :product="$product" />
+                <x-product-card :product="$featuredProduct" />
             </div>
         @endforeach
     </div>

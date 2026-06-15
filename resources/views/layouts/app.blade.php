@@ -57,6 +57,18 @@
             $seoImage = url($seoImage);
         }
     @endphp
+    @php
+        $viteCssHref = null;
+        if (file_exists(public_path('build/manifest.json'))) {
+            $m = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+            if (isset($m['resources/css/app.css']['file'])) {
+                $viteCssHref = '/build/' . $m['resources/css/app.css']['file'];
+            }
+        }
+    @endphp
+    @if($viteCssHref)
+    <link rel="preload" as="style" href="{{ $viteCssHref }}" fetchpriority="high">
+    @endif
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $seoTitle }}</title>

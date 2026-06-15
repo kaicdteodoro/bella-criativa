@@ -64,13 +64,16 @@
                 </button>
 
                 <a href="{{ route('home') }}" class="pb-focus-ring shrink-0" aria-label="Bella Criativa — início">
-                    <img
-                        src="/images/logo-rosa.png"
-                        alt="Bella — design e personalização"
-                        class="h-14 w-auto sm:h-16"
-                        width="600"
-                        height="371"
-                    >
+                    <picture>
+                        <source srcset="/images/logo-rosa.webp" type="image/webp">
+                        <img
+                            src="/images/logo-rosa.png"
+                            alt="Bella — design e personalização"
+                            class="h-14 w-auto sm:h-16"
+                            width="600"
+                            height="371"
+                        >
+                    </picture>
                 </a>
             </div>
 

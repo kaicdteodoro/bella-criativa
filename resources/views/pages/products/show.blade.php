@@ -187,6 +187,7 @@
                         alt="{{ $product->title }}"
                         class="h-full w-full object-contain p-6 transition duration-300 group-hover:scale-[1.01]"
                         loading="eager"
+                        fetchpriority="high"
                     >
                 </button>
             @else

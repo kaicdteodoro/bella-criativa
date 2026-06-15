@@ -219,6 +219,8 @@
                     alt="{{ $card['alt'] }}"
                     loading="lazy"
                     decoding="async"
+                    width="900"
+                    height="675"
                     class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
                 >
             </div>

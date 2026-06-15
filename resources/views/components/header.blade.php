@@ -68,6 +68,8 @@
                         src="/images/logo-rosa.png"
                         alt="Bella — design e personalização"
                         class="h-14 w-auto sm:h-16"
+                        width="600"
+                        height="371"
                     >
                 </a>
             </div>

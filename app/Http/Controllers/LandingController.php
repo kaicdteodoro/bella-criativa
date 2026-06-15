@@ -11,7 +11,7 @@ class LandingController extends Controller
 {
     public function launches(): View
     {
-        $page = Page::published()->where('slug', 'lancamentos')->with('sections')->firstOrFail();
+        $page = Page::published()->where('slug', 'lancamentos')->with('sections')->first();
         $products = Product::published()
             ->where('is_launch', true)
             ->with(['categories', 'media'])
@@ -24,7 +24,7 @@ class LandingController extends Controller
 
     public function premium(): View
     {
-        $page = Page::published()->where('slug', 'linha-premium')->with('sections')->firstOrFail();
+        $page = Page::published()->where('slug', 'linha-premium')->with('sections')->first();
         $products = Product::published()
             ->where('is_premium', true)
             ->with(['categories', 'media'])

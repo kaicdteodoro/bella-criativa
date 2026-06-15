@@ -37,6 +37,11 @@ class ProductUpsert
 
         $product ??= new Product();
 
+        if ($action === ImportAction::Created) {
+            $product->is_launch  = true;
+            $product->is_premium = self::detectPremium($row->title, $row->shortDescription, $curated->category);
+        }
+
         $product->fill([
             'sku' => $row->sku,
             'title' => $curated->title,
@@ -104,6 +109,26 @@ class ProductUpsert
             warnings: $curated->qualityNotes,
             published: $product->status === 'published',
         );
+    }
+
+    public static function detectPremium(?string ...$fields): bool
+    {
+        $text = mb_strtolower(implode(' ', array_filter($fields)));
+
+        $keywords = [
+            'couro', 'executivo', 'executive', 'premium',
+            'whisky', 'vinho', 'madeira', 'inox',
+            'kit vinho', 'kit executivo', 'kit churrasco', 'kit queijo',
+            'linha executiva', 'caneta metal', 'caneta inox',
+        ];
+
+        foreach ($keywords as $kw) {
+            if (str_contains($text, $kw)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

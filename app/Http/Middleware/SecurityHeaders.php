@@ -30,19 +30,6 @@ class SecurityHeaders
             "connect-src 'self' https:{$devOrigins}; form-action 'self' https://wa.me"
         );
 
-        // Phase 2 hardening in observe mode: stricter policy without inline allowances.
-        // This does not block yet, but helps map what must be migrated before enforcement.
-        $reportUri = route('security.csp-report');
-
-        $response->headers->set(
-            'Content-Security-Policy-Report-Only',
-            "default-src 'self'; base-uri 'self'; frame-ancestors 'self'; ".
-            "img-src 'self' data: blob: https:; font-src 'self' data: https:; ".
-            "style-src 'self' https:{$devOrigins}; script-src 'self' https:{$devOrigins}; ".
-            "connect-src 'self' https:{$devOrigins}; form-action 'self' https://wa.me; ".
-            "report-uri {$reportUri}"
-        );
-
         if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }

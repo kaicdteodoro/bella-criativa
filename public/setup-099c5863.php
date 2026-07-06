@@ -175,7 +175,11 @@ if ($step === 'diag') {
 
     // Fix cache
     echo "<h3 style='color:#ff0'>Limpar e re-cachear config</h3>";
-    run('optimize:clear + optimize', "$php $root/artisan optimize:clear && $php $root/artisan optimize", $pre);
+    run(
+        'down + optimize:clear + optimize + up',
+        "$php $root/artisan down --retry=5 && $php $root/artisan optimize:clear && $php $root/artisan optimize && $php $root/artisan up",
+        $pre
+    );
 
     // DB connection
     echo "<h3 style='color:#ff0'>Conexão com banco</h3><pre style='$pre'>";
@@ -302,6 +306,8 @@ if ($step === 'repair') {
     echo $appKeyExists ? "APP_KEY presente\n" : "APP_KEY ausente ou vazia\n";
     echo "</pre>";
 
+    run('0. Ativar modo de manutenção', "$php $root/artisan down --retry=5", $pre);
+
     run('1. Limpar caches', "$php $root/artisan optimize:clear", $pre);
 
     if (! $appKeyExists) {
@@ -311,6 +317,7 @@ if ($step === 'repair') {
     }
 
     run('3. Recriar caches', "$php $root/artisan optimize", $pre);
+    run('4. Sair do modo de manutenção', "$php $root/artisan up", $pre);
 
     $updatedEnv = readEnvFile($envPath);
     $updatedAppKey = trim($updatedEnv['APP_KEY'] ?? '');
@@ -358,6 +365,16 @@ HTML;
 }
 
 // ─── SETUP PRINCIPAL ─────────────────────────────────────────
+// composer install/optimize reescrevem bootstrap/cache/config.php com file_put_contents
+// (não atômico) — rodar isso num servidor ao vivo, com tráfego, cria uma janela em que
+// requests concorrentes leem o arquivo truncado e estouram MissingAppKeyException. Modo
+// de manutenção evita isso: requests durante a janela pegam a página de manutenção em vez
+// de um 500 cru sem CSS.
+$hasVendor = file_exists("$root/vendor/autoload.php");
+if ($hasVendor) {
+    run('0. Ativar modo de manutenção', "$php $root/artisan down --retry=5", $pre);
+}
+
 run('1. Composer install', "cd $root && composer install --no-dev --optimize-autoloader", $pre);
 
 $envPath = "$root/.env";
@@ -436,6 +453,7 @@ run('4. php artisan migrate',      "$php $root/artisan migrate --force", $pre);
 run('5. php artisan db:seed',      "$php $root/artisan db:seed --force", $pre);
 run('6. php artisan storage:link', "$php $root/artisan storage:link --force", $pre);
 run('7. php artisan optimize',     "$php $root/artisan optimize", $pre);
+run('8. Sair do modo de manutenção', "$php $root/artisan up", $pre);
 
 echo "<h2 style='color:#0f0'>✓ Setup concluído!</h2>";
 echo "<p><a href='?token=099c5863da2698db66adf41c&step=user' style='color:#0af'>→ Criar usuário admin agora</a></p>";

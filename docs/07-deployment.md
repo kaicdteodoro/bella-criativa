@@ -103,8 +103,19 @@ php artisan filament:user
 
 ## 6. Deploy de Atualização
 
+**Importante:** `php artisan config:cache` (chamado por `optimize`/`optimize:clear` e também
+implícito no `composer install --optimize-autoloader`) reescreve `bootstrap/cache/config.php`
+com `file_put_contents()` — **não é atômico**. Rodar isso direto no servidor **ao vivo, com
+tráfego real**, cria uma janela de milissegundos em que o arquivo está truncado/vazio. Um
+visitante que bater o site nesse instante recebe `MissingAppKeyException` — é isso, e não
+"cache do navegador", que já causou o site aparecer sem CSS mais de uma vez em produção.
+
+Por isso, **todo deploy/atualização em produção deve ser envolvido em modo de manutenção**:
+
 ```bash
 cd ~/bella-criativa
+php artisan down --retry=5
+
 git pull origin main
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
@@ -112,7 +123,14 @@ php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+
+php artisan up
 ```
+
+`php artisan down` serve a página de manutenção do Laravel (estática, não depende de
+config/vite) pra qualquer visitante que bater o site durante essa janela, em vez de deixar
+a exceção estourar crua. Nunca rode `composer install`/`optimize`/`config:cache` direto no
+diretório servido, sem `artisan down` antes, mesmo que pareça "só uma correção rápida".
 
 Se houver mudança de CSS/JS:
 
